@@ -79,7 +79,11 @@ ScrollView {
 
             RowLayout {
                 Layout.fillWidth: true
-                Text { text: "Output Device"; font { pixelSize: 12; family: "Inter" }; color: root.textLow }
+                Text {
+                    text: "Output Device"
+                    font { pixelSize: 12; family: "Inter" }
+                    color: root.textLow
+                }
                 Item { Layout.fillWidth: true }
                 Text {
                     text: AudioBackend.activeOutput

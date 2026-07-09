@@ -14,7 +14,6 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS
     Network
     Concurrent
 )
-find_package(Qt6 COMPONENTS Qt5Compat)
 
 qt_add_executable(archtitan-settings
     src/main.cpp
@@ -71,7 +70,6 @@ target_link_libraries(archtitan-settings PRIVATE
     Qt6::DBus
     Qt6::Network
     Qt6::Concurrent
-    $<TARGET_NAME_IF_EXISTS:Qt6::Qt5Compat>
 )
 
 target_include_directories(archtitan-settings PRIVATE

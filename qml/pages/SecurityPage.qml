@@ -41,8 +41,16 @@ ScrollView {
                 }
                 Column {
                     spacing: 4
-                    Text { text: "Screen Autolock"; font { pixelSize: 13; weight: Font.SemiBold; family: "Inter" }; color: root.textHigh }
-                    Text { text: "Lock screen when idle using swaylock"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
+                    Text {
+                        text: "Screen Autolock"
+                        font { pixelSize: 13; weight: Font.SemiBold; family: "Inter" }
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Lock screen when idle using swaylock"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSwitch { checked: SettingsBackend.autolockEnabled; onCheckedChanged: SettingsBackend.autolockEnabled = checked }
@@ -54,8 +62,18 @@ ScrollView {
                 Layout.fillWidth: true
                 Column {
                     spacing: 4
-                    Text { text: "Lock After"; font { pixelSize: 13; weight: Font.Medium; family: "Inter" }; color: root.textHigh; opacity: SettingsBackend.autolockEnabled ? 1.0 : 0.35 }
-                    Text { text: "Idle time before screen locks"; font { pixelSize: 12; family: "Inter" }; color: root.textMid; opacity: SettingsBackend.autolockEnabled ? 1.0 : 0.35 }
+                    Text {
+                        text: "Lock After"
+                        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                        color: root.textHigh
+                        opacity: SettingsBackend.autolockEnabled ? 1.0 : 0.35
+                    }
+                    Text {
+                        text: "Idle time before screen locks"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                        opacity: SettingsBackend.autolockEnabled ? 1.0 : 0.35
+                    }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSlider {
@@ -93,8 +111,16 @@ ScrollView {
                         Rectangle { width: 8; height: 8; radius: 4; color: modelData.enabled ? root.green : root.red; anchors.verticalCenter: parent.verticalCenter }
                         Column {
                             spacing: 3
-                            Text { text: modelData.label; font { pixelSize: 13; weight: Font.Medium; family: "Inter" }; color: root.textHigh }
-                            Text { text: modelData.desc; font { pixelSize: 11; family: "Inter" }; color: root.textMid }
+                            Text {
+                                text: modelData.label
+                                font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                                color: root.textHigh
+                            }
+                            Text {
+                                text: modelData.desc
+                                font { pixelSize: 11; family: "Inter" }
+                                color: root.textMid
+                            }
                         }
                         Item { Layout.fillWidth: true }
                         StatusBadge { text: modelData.enabled ? "Active" : "Inactive"; statusColor: modelData.enabled ? root.green : root.red }
@@ -121,7 +147,12 @@ ScrollView {
                         Row {
                             anchors.centerIn: parent; spacing: 8
                             Text { text: modelData.icon; font.pixelSize: 16; anchors.verticalCenter: parent.verticalCenter }
-                            Text { text: modelData.text; font { pixelSize: 12; family: "Inter"; weight: Font.Medium }; color: root.textHigh; anchors.verticalCenter: parent.verticalCenter }
+                            Text {
+                                text: modelData.text
+                                font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                                color: root.textHigh
+                                anchors.verticalCenter: parent.verticalCenter
+                            }
                         }
                         MouseArea { id: actH; anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor }
                     }

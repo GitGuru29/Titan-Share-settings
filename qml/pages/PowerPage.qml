@@ -98,8 +98,16 @@ ScrollView {
                 Layout.fillWidth: true
                 Column {
                     spacing: 4
-                    Text { text: "Screen Off After"; font { pixelSize: 13; weight: Font.Medium; family: "Inter" }; color: root.textHigh }
-                    Text { text: "Idle screen timeout"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
+                    Text {
+                        text: "Screen Off After"
+                        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Idle screen timeout"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSlider {
@@ -123,8 +131,16 @@ ScrollView {
                 Layout.fillWidth: true
                 Column {
                     spacing: 4
-                    Text { text: "Suspend After"; font { pixelSize: 13; weight: Font.Medium; family: "Inter" }; color: root.textHigh }
-                    Text { text: "System suspend timeout"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
+                    Text {
+                        text: "Suspend After"
+                        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "System suspend timeout"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSlider {

@@ -43,18 +43,25 @@ Item {
         }
         spacing: 11
 
-        // Icon
-        Image {
+        // Icon container with color tint
+        Item {
             width: 16; height: 16
-            source: root.iconSource
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-            opacity: root.active ? 1.0 : (hover.containsMouse ? 0.75 : 0.45)
-            Behavior on opacity { NumberAnimation { duration: 120 } }
 
-            layer.enabled: true
-            layer.effect: ColorOverlay {
+            Image {
+                id: iconImg
+                anchors.fill: parent
+                source: root.iconSource
+                fillMode: Image.PreserveAspectFit
+                smooth: true
+                visible: false
+            }
+
+            Rectangle {
+                anchors.fill: parent
                 color: root.active ? root.accent : root.textNormal
+                opacity: root.active ? 1.0 : (hover.containsMouse ? 0.75 : 0.45)
+                Behavior on color   { ColorAnimation { duration: 120 } }
+                Behavior on opacity { NumberAnimation  { duration: 120 } }
             }
         }
 

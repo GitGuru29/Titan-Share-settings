@@ -165,8 +165,16 @@ ScrollView {
                 Layout.fillWidth: true
                 Column {
                     spacing: 4
-                    Text { text: "Blur / Transparency"; font { pixelSize: 13; family: "Inter"; weight: Font.Medium }; color: root.textHigh }
-                    Text { text: "Frosted glass effect on panels"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
+                    Text {
+                        text: "Blur / Transparency"
+                        font { pixelSize: 13; family: "Inter"; weight: Font.Medium }
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Frosted glass effect on panels"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSwitch {
@@ -181,8 +189,16 @@ ScrollView {
                 Layout.fillWidth: true
                 Column {
                     spacing: 4
-                    Text { text: "Panel Opacity"; font { pixelSize: 13; family: "Inter"; weight: Font.Medium }; color: root.textHigh }
-                    Text { text: "Transparency level for sidebars"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
+                    Text {
+                        text: "Panel Opacity"
+                        font { pixelSize: 13; family: "Inter"; weight: Font.Medium }
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Transparency level for sidebars"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSlider {
@@ -252,8 +268,16 @@ ScrollView {
                 Layout.fillWidth: true
                 Column {
                     spacing: 4
-                    Text { text: "Font Size"; font { pixelSize: 13; family: "Inter"; weight: Font.Medium }; color: root.textHigh }
-                    Text { text: "System-wide interface font size"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
+                    Text {
+                        text: "Font Size"
+                        font { pixelSize: 13; family: "Inter"; weight: Font.Medium }
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "System-wide interface font size"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSlider {

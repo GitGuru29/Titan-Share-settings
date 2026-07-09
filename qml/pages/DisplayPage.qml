@@ -29,7 +29,11 @@ ScrollView {
                 Layout.fillWidth: true
                 spacing: 12
 
-                Text { text: "○"; font { pixelSize: 14; family: "Inter" }; color: root.textLow }
+                Text {
+                    text: "○"
+                    font { pixelSize: 14; family: "Inter" }
+                    color: root.textLow
+                }
 
                 TitanSlider {
                     Layout.fillWidth: true
@@ -42,7 +46,11 @@ ScrollView {
                     }
                 }
 
-                Text { text: "◉"; font { pixelSize: 14; family: "Inter" }; color: root.textMid }
+                Text {
+                    text: "◉"
+                    font { pixelSize: 14; family: "Inter" }
+                    color: root.textMid
+                }
 
                 Text {
                     text: DisplayManager.brightness + "%"
@@ -65,8 +73,16 @@ ScrollView {
 
                 Column {
                     spacing: 4
-                    Text { text: "Night Light"; font { pixelSize: 13; weight: Font.SemiBold; family: "Inter" }; color: root.textHigh }
-                    Text { text: "Reduces blue light via wlsunset"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
+                    Text {
+                        text: "Night Light"
+                        font { pixelSize: 13; weight: Font.SemiBold; family: "Inter" }
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Reduces blue light via wlsunset"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSwitch {
@@ -163,8 +179,16 @@ ScrollView {
                 Layout.fillWidth: true
                 Column {
                     spacing: 4
-                    Text { text: "Display Scale"; font { pixelSize: 13; weight: Font.Medium; family: "Inter" }; color: root.textHigh }
-                    Text { text: "Hyprland monitor scale factor"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
+                    Text {
+                        text: "Display Scale"
+                        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Hyprland monitor scale factor"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSlider {
