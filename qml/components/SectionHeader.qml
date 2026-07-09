@@ -4,7 +4,7 @@ import ArchTitanSettings
 
 Item {
     property string text: ""
-    height: 36
+    height: 32
     Layout.fillWidth: true
 
     Row {
@@ -14,26 +14,20 @@ Item {
         Text {
             anchors.verticalCenter: parent.verticalCenter
             text: parent.parent.text.toUpperCase()
-            font { pixelSize: 10; weight: Font.Bold; family: "Inter"; letterSpacing: 2.0 }
-            color: "#3E4460"
+            font { pixelSize: 10; weight: Font.SemiBold; family: "Inter"; letterSpacing: 1.2 }
+            color: "#4A4A4A"
         }
 
-        // Gradient line
         Rectangle {
             anchors.verticalCenter: parent.verticalCenter
             width: {
-                var parentWidth = parent.parent.parent.width
-                var textLen = parent.parent.text.length * 9 + 20
-                return Math.max(0, parentWidth - textLen - 20)
+                var pw = parent.parent.parent.width
+                var tw = parent.parent.text.length * 8 + 16
+                return Math.max(0, pw - tw - 16)
             }
             height: 1
+            color: "#222222"
             visible: parent.parent.text !== ""
-
-            gradient: Gradient {
-                orientation: Gradient.Horizontal
-                GradientStop { position: 0.0; color: "#7AA2F720" }
-                GradientStop { position: 1.0; color: "transparent" }
-            }
         }
     }
 }

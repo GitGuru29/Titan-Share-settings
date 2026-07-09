@@ -8,111 +8,77 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textPrimary:   "#E8E8F5"
-    property color textSecondary: "#8A94B8"
-    property color textDim:       "#555878"
-    property color accentBlue:    "#7AA2F7"
+    property color textHigh: "#EBEBEB"
+    property color textMid:  "#8C8C8C"
+    property color textLow:  "#4A4A4A"
+    property color accent:   "#4C8BF5"
+    property color green:    "#4CAF82"
+    property color orange:   "#D4853A"
+    property color red:      "#E05C6A"
 
     ColumnLayout {
         width: root.width
         spacing: 0
 
-        Item { height: 32 }
+        Item { height: 28 }
 
-        // ── Power profile selector ────────────────────────────────
+        // ── Power profile selector ───────────────────────────────
         RowLayout {
             Layout.fillWidth: true
-            Layout.leftMargin: 28; Layout.rightMargin: 28
-            spacing: 14
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            spacing: 12
 
             Repeater {
                 model: [
-                    { name: "Power Saver",  desc: "Maximize battery life",  icon: "🌿", clr: "#9ECE6A", bg: "#0A160A" },
-                    { name: "Balanced",     desc: "Smart performance",       icon: "⚖",  clr: "#7AA2F7", bg: "#0A0E1A" },
-                    { name: "Performance",  desc: "Max CPU performance",     icon: "⚡",  clr: "#FF9E64", bg: "#1A0F06" }
+                    { name: "Power Saver",  desc: "Maximize battery life",  accent: "#4CAF82" },
+                    { name: "Balanced",     desc: "Smart performance",       accent: "#4C8BF5" },
+                    { name: "Performance",  desc: "Max CPU performance",     accent: "#D4853A" }
                 ]
                 delegate: Rectangle {
-                    Layout.fillWidth: true; height: 136; radius: 14
+                    Layout.fillWidth: true; height: 110; radius: 10
                     property bool sel: SettingsBackend.powerProfile === modelData.name
 
-                    color: sel
-                           ? Qt.rgba(Qt.color(modelData.clr).r, Qt.color(modelData.clr).g, Qt.color(modelData.clr).b, 0.10)
-                           : modelData.bg
+                    color: sel ? Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, 0.08) : "#161616"
                     border.width: sel ? 2 : 1
-                    border.color: sel ? modelData.clr : "#FFFFFF10"
-
-                    Behavior on color       { ColorAnimation { duration: 220 } }
-                    Behavior on border.color{ ColorAnimation { duration: 220 } }
-
-                    // Top shimmer
-                    Rectangle {
-                        anchors { top: parent.top; left: parent.left; right: parent.right; topMargin: 1; leftMargin: 1; rightMargin: 1 }
-                        height: 1; radius: parent.parent.radius
-                        color: sel ? Qt.rgba(Qt.color(modelData.clr).r, Qt.color(modelData.clr).g, Qt.color(modelData.clr).b, 0.4) : "#FFFFFF0A"
-                    }
+                    border.color: sel ? modelData.accent : "#2A2A2A"
+                    Behavior on color       { ColorAnimation { duration: 180 } }
+                    Behavior on border.color{ ColorAnimation { duration: 180 } }
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 10
+                        spacing: 8
 
-                        // Icon ring
-                        Item {
-                            width: 52; height: 52
+                        Rectangle {
+                            width: 40; height: 40; radius: 10
                             anchors.horizontalCenter: parent.horizontalCenter
-
-                            Rectangle {
-                                anchors.centerIn: parent
-                                width: 52; height: 52; radius: 26
-                                color: Qt.rgba(Qt.color(modelData.clr).r, Qt.color(modelData.clr).g, Qt.color(modelData.clr).b, sel ? 0.20 : 0.08)
-                                border.width: 1
-                                border.color: Qt.rgba(Qt.color(modelData.clr).r, Qt.color(modelData.clr).g, Qt.color(modelData.clr).b, sel ? 0.6 : 0.2)
-                                Behavior on color { ColorAnimation { duration: 200 } }
-                            }
+                            color: Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, sel ? 0.18 : 0.08)
+                            border.width: 1
+                            border.color: Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, sel ? 0.5 : 0.2)
 
                             Text {
                                 anchors.centerIn: parent
-                                text: modelData.icon
-                                font.pixelSize: 24
+                                text: index === 0 ? "↓" : index === 1 ? "~" : "↑"
+                                font { pixelSize: 18; weight: Font.Bold; family: "Inter" }
+                                color: modelData.accent
                             }
                         }
 
                         Text {
                             text: modelData.name
-                            font { pixelSize: 13; weight: Font.SemiBold; family: "Inter" }
-                            color: sel ? Qt.color(modelData.clr) : root.textPrimary
+                            font { pixelSize: 12; weight: Font.Medium; family: "Inter" }
+                            color: sel ? root.textHigh : root.textMid
                             anchors.horizontalCenter: parent.horizontalCenter
-                            Behavior on color { ColorAnimation { duration: 200 } }
                         }
-
                         Text {
                             text: modelData.desc
-                            font { pixelSize: 11; family: "Inter" }
-                            color: sel ? Qt.rgba(Qt.color(modelData.clr).r, Qt.color(modelData.clr).g, Qt.color(modelData.clr).b, 0.7) : root.textDim
+                            font { pixelSize: 10; family: "Inter" }
+                            color: root.textLow
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
                     }
 
-                    // Selected check
-                    Rectangle {
-                        anchors { top: parent.top; right: parent.right; topMargin: 10; rightMargin: 10 }
-                        width: 20; height: 20; radius: 10
-                        color: modelData.clr
-                        visible: sel
-                        Text {
-                            anchors.centerIn: parent
-                            text: "✓"
-                            font { pixelSize: 11; weight: Font.Bold }
-                            color: "#000000CC"
-                        }
-                    }
-
-                    scale: pfHov.containsMouse ? 1.02 : 1.0
-                    Behavior on scale { NumberAnimation { duration: 150 } }
-
                     MouseArea {
-                        id: pfHov
-                        anchors.fill: parent
-                        hoverEnabled: true
+                        anchors.fill: parent; hoverEnabled: true
                         cursorShape: Qt.PointingHandCursor
                         onClicked: SettingsBackend.powerProfile = modelData.name
                     }
@@ -120,184 +86,114 @@ ScrollView {
             }
         }
 
-        Item { height: 20 }
+        Item { height: 16 }
 
-        // ── Timeouts ──────────────────────────────────────────────
+        // ── Timeouts ─────────────────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
-            Layout.leftMargin: 28; Layout.rightMargin: 28
-            title: "TIMEOUTS"
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            title: "Timeouts"
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 16
                 Column {
-                    spacing: 5
-                    Text {
-                        text: "Screen Off After"
-                        font { pixelSize: 14; weight: Font.Medium; family: "Inter" }
-                        color: root.textPrimary
-                    }
-                    Text {
-                        text: "Idle screen timeout"
-                        font { pixelSize: 12; family: "Inter" }
-                        color: root.textDim
-                    }
+                    spacing: 4
+                    Text { text: "Screen Off After"; font { pixelSize: 13; weight: Font.Medium; family: "Inter" }; color: root.textHigh }
+                    Text { text: "Idle screen timeout"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSlider {
-                    width: 200; from: 30; to: 1800; stepSize: 30
+                    width: 160; from: 30; to: 1800; stepSize: 30
                     value: SettingsBackend.screenTimeout
                     onValueChanged: SettingsBackend.screenTimeout = value
                 }
-                Rectangle {
-                    width: 52; height: 28; radius: 8; color: "#1A1A2C"
-                    border.width: 1; border.color: "#FFFFFF10"
-                    Text {
-                        anchors.centerIn: parent
-                        text: SettingsBackend.screenTimeout >= 60
-                              ? Math.floor(SettingsBackend.screenTimeout / 60) + " m"
-                              : SettingsBackend.screenTimeout + " s"
-                        font { pixelSize: 12; family: "Inter"; weight: Font.SemiBold }
-                        color: root.accentBlue
-                    }
+                Text {
+                    text: SettingsBackend.screenTimeout >= 60
+                          ? Math.floor(SettingsBackend.screenTimeout / 60) + " m"
+                          : SettingsBackend.screenTimeout + " s"
+                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    color: root.accent; Layout.preferredWidth: 40
+                    horizontalAlignment: Text.AlignRight
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#FFFFFF08"; Layout.topMargin: 8; Layout.bottomMargin: 8 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 6; Layout.bottomMargin: 6 }
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 16
                 Column {
-                    spacing: 5
-                    Text {
-                        text: "Suspend After"
-                        font { pixelSize: 14; weight: Font.Medium; family: "Inter" }
-                        color: root.textPrimary
-                    }
-                    Text {
-                        text: "System suspend timeout"
-                        font { pixelSize: 12; family: "Inter" }
-                        color: root.textDim
-                    }
+                    spacing: 4
+                    Text { text: "Suspend After"; font { pixelSize: 13; weight: Font.Medium; family: "Inter" }; color: root.textHigh }
+                    Text { text: "System suspend timeout"; font { pixelSize: 12; family: "Inter" }; color: root.textMid }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSlider {
-                    width: 200; from: 60; to: 3600; stepSize: 60
+                    width: 160; from: 60; to: 3600; stepSize: 60
                     value: SettingsBackend.suspendTimeout
                     onValueChanged: SettingsBackend.suspendTimeout = value
                 }
-                Rectangle {
-                    width: 52; height: 28; radius: 8; color: "#1A1A2C"
-                    border.width: 1; border.color: "#FFFFFF10"
-                    Text {
-                        anchors.centerIn: parent
-                        text: Math.floor(SettingsBackend.suspendTimeout / 60) + " m"
-                        font { pixelSize: 12; family: "Inter"; weight: Font.SemiBold }
-                        color: root.accentBlue
-                    }
+                Text {
+                    text: Math.floor(SettingsBackend.suspendTimeout / 60) + " m"
+                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    color: root.accent; Layout.preferredWidth: 40
+                    horizontalAlignment: Text.AlignRight
                 }
             }
         }
 
-        Item { height: 14 }
+        Item { height: 12 }
 
-        // ── Battery ───────────────────────────────────────────────
+        // ── Battery ──────────────────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
-            Layout.leftMargin: 28; Layout.rightMargin: 28
-            title: "BATTERY"
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            title: "Battery"
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 24
+                spacing: 20
 
-                // Battery icon
-                Rectangle {
-                    width: 56; height: 56; radius: 14
-                    color: {
-                        if (SystemInfo.batteryLevel > 40) return "#0A160A"
-                        if (SystemInfo.batteryLevel > 20) return "#160E04"
-                        return "#1A0808"
-                    }
-                    border.width: 1
-                    border.color: {
-                        if (SystemInfo.batteryLevel > 40) return "#9ECE6A40"
-                        if (SystemInfo.batteryLevel > 20) return "#E0AF6840"
-                        return "#F7768E40"
-                    }
-                    Behavior on color { ColorAnimation { duration: 500 } }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: SystemInfo.batteryCharging ? "🔌" : "🔋"
-                        font.pixelSize: 26
-                    }
-                }
-
+                // Battery level text
                 Column {
-                    spacing: 8
+                    spacing: 4
                     Text {
                         text: SystemInfo.batteryLevel + "%"
-                        font { pixelSize: 36; weight: Font.Bold; family: "Inter" }
-                        color: {
-                            if (SystemInfo.batteryLevel > 40) return "#9ECE6A"
-                            if (SystemInfo.batteryLevel > 20) return "#E0AF68"
-                            return "#F7768E"
-                        }
+                        font { pixelSize: 32; weight: Font.Bold; family: "Inter" }
+                        color: SystemInfo.batteryLevel > 40 ? root.green
+                             : SystemInfo.batteryLevel > 20 ? root.orange : root.red
                         Behavior on color { ColorAnimation { duration: 500 } }
                     }
                     Text {
-                        text: SystemInfo.batteryCharging ? "⚡  Charging" : "On Battery"
+                        text: SystemInfo.batteryCharging ? "Charging" : "On Battery"
                         font { pixelSize: 12; family: "Inter" }
-                        color: root.textDim
+                        color: root.textMid
                     }
                 }
 
                 Item { Layout.fillWidth: true }
 
-                // Battery body visual
+                // Battery bar
                 Item {
-                    width: 130; height: 52
-                    anchors.verticalCenter: parent.verticalCenter
+                    width: 120; height: 48; anchors.verticalCenter: parent.verticalCenter
 
-                    // Battery body
                     Rectangle {
                         anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
-                        width: parent.width - 8
-                        radius: 6
-                        color: "#0C0C18"
-                        border.width: 1; border.color: "#FFFFFF18"
+                        width: parent.width - 6; radius: 6
+                        color: "#1A1A1A"; border.width: 1; border.color: "#2A2A2A"
 
-                        // Fill
                         Rectangle {
                             anchors { left: parent.left; top: parent.top; bottom: parent.bottom; margins: 3 }
-                            width: Math.max(0, ((SystemInfo.batteryLevel / 100) * (parent.width - 6)))
+                            width: Math.max(0, (SystemInfo.batteryLevel / 100) * (parent.width - 6))
                             radius: 4
-                            color: {
-                                if (SystemInfo.batteryLevel > 40) return "#9ECE6A"
-                                if (SystemInfo.batteryLevel > 20) return "#E0AF68"
-                                return "#F7768E"
-                            }
+                            color: SystemInfo.batteryLevel > 40 ? root.green
+                                 : SystemInfo.batteryLevel > 20 ? root.orange : root.red
                             Behavior on width { NumberAnimation { duration: 800; easing.type: Easing.OutCubic } }
                             Behavior on color { ColorAnimation { duration: 500 } }
-
-                            // Shine
-                            Rectangle {
-                                anchors { top: parent.top; left: parent.left; right: parent.right; topMargin: 2; margins: 4 }
-                                height: 4; radius: 2
-                                color: "#FFFFFF"
-                                opacity: 0.25
-                            }
                         }
                     }
-
-                    // Nub
                     Rectangle {
                         anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                        width: 6; height: 22; radius: 3
-                        color: "#FFFFFF18"
+                        width: 5; height: 18; radius: 2; color: "#2A2A2A"
                     }
                 }
             }
@@ -306,11 +202,11 @@ ScrollView {
         Item { height: 24 }
 
         RowLayout {
-            Layout.leftMargin: 28; Layout.rightMargin: 28
+            Layout.leftMargin: 24; Layout.rightMargin: 24
             Item { Layout.fillWidth: true }
-            TitanButton { text: "Apply & Save"; primary: true; width: 150; onClicked: SettingsBackend.applyAndSave() }
+            TitanButton { text: "Apply & Save"; primary: true; width: 130; onClicked: SettingsBackend.applyAndSave() }
         }
 
-        Item { height: 32 }
+        Item { height: 28 }
     }
 }

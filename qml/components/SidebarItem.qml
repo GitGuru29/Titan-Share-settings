@@ -4,74 +4,57 @@ import ArchTitanSettings
 
 Item {
     id: root
-    height: 48
-    implicitHeight: 48
+    height: 44
+    implicitHeight: 44
 
-    property string icon: ""
+    property string iconSource: ""
     property string label: ""
-    property bool active: false
-    property color accentColor: "#7AA2F7"
-    property color bgHoverColor: "#1A1A2A"
-    property color textPrimColor: "#E8E8F5"
-    property color textDimColor: "#555878"
+    property bool   active: false
+    property color  accent:     "#4C8BF5"
+    property color  bgActive:   "#1C1C1C"
+    property color  bgHover:    "#242424"
+    property color  textActive: "#EBEBEB"
+    property color  textNormal: "#8C8C8C"
 
     signal clicked()
 
-    // ── Pill-shaped active background ─────────────────────────────
+    // Background
     Rectangle {
-        id: activeBg
-        anchors { fill: parent; leftMargin: 10; rightMargin: 10 }
-        radius: 10
-        opacity: root.active ? 1 : (hover.containsMouse ? 0.6 : 0)
-        Behavior on opacity { NumberAnimation { duration: 180 } }
+        anchors { fill: parent; leftMargin: 8; rightMargin: 8 }
+        radius: 7
+        color: root.active ? root.bgActive : (hover.containsMouse ? root.bgHover : "transparent")
+        Behavior on color { ColorAnimation { duration: 120 } }
 
-        gradient: Gradient {
-            orientation: Gradient.Horizontal
-            GradientStop { position: 0.0; color: Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.18) }
-            GradientStop { position: 1.0; color: Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.04) }
-        }
-
-        // Left accent stripe
+        // Left active indicator
         Rectangle {
-            anchors { left: parent.left; top: parent.top; bottom: parent.bottom; topMargin: 8; bottomMargin: 8 }
+            anchors { left: parent.left; leftMargin: -8; top: parent.top; topMargin: 10; bottom: parent.bottom; bottomMargin: 10 }
             width: 3; radius: 2
-            color: root.accentColor
+            color: root.accent
             opacity: root.active ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
+            Behavior on opacity { NumberAnimation { duration: 150 } }
         }
-
-        // Glow border
-        border.width: root.active ? 1 : 0
-        border.color: Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.25)
-        Behavior on border.width { NumberAnimation { duration: 150 } }
     }
 
-    // ── Content row ───────────────────────────────────────────────
     RowLayout {
-        anchors { verticalCenter: parent.verticalCenter; left: parent.left; leftMargin: 24; right: parent.right; rightMargin: 14 }
-        spacing: 13
+        anchors {
+            verticalCenter: parent.verticalCenter
+            left: parent.left; leftMargin: 16
+            right: parent.right; rightMargin: 12
+        }
+        spacing: 11
 
-        // Icon container
-        Item {
-            width: 26; height: 26
+        // Icon
+        Image {
+            width: 16; height: 16
+            source: root.iconSource
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            opacity: root.active ? 1.0 : (hover.containsMouse ? 0.75 : 0.45)
+            Behavior on opacity { NumberAnimation { duration: 120 } }
 
-            Rectangle {
-                anchors.centerIn: parent
-                width: 26; height: 26; radius: 7
-                color: root.active
-                       ? Qt.rgba(root.accentColor.r, root.accentColor.g, root.accentColor.b, 0.2)
-                       : "transparent"
-                Behavior on color { ColorAnimation { duration: 150 } }
-            }
-
-            Text {
-                anchors.centerIn: parent
-                text: root.icon
-                font.pixelSize: 14
-                color: root.active ? root.accentColor : root.textDimColor
-                Behavior on color { ColorAnimation { duration: 150 } }
-                opacity: root.active ? 1.0 : (hover.containsMouse ? 0.8 : 0.55)
-                Behavior on opacity { NumberAnimation { duration: 150 } }
+            layer.enabled: true
+            layer.effect: ColorOverlay {
+                color: root.active ? root.accent : root.textNormal
             }
         }
 
@@ -79,20 +62,12 @@ Item {
             text: root.label
             font {
                 pixelSize: 13
-                weight: root.active ? Font.SemiBold : Font.Normal
+                weight: root.active ? Font.Medium : Font.Normal
                 family: "Inter"
             }
-            color: root.active ? root.textPrimColor : root.textDimColor
-            Behavior on color { ColorAnimation { duration: 150 } }
+            color: root.active ? root.textActive : root.textNormal
+            Behavior on color { ColorAnimation { duration: 120 } }
             Layout.fillWidth: true
-        }
-
-        // Active dot indicator
-        Rectangle {
-            width: 6; height: 6; radius: 3
-            color: root.accentColor
-            opacity: root.active ? 1 : 0
-            Behavior on opacity { NumberAnimation { duration: 200 } }
         }
     }
 

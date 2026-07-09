@@ -1,150 +1,79 @@
 import QtQuick
 import QtQuick.Controls.Basic
 import QtQuick.Layouts
-import QtQuick.Effects
 import Qt5Compat.GraphicalEffects
 import ArchTitanSettings
 
 ApplicationWindow {
     id: root
-    width: 1180
-    height: 760
-    minimumWidth: 960
-    minimumHeight: 620
+    width: 1160
+    height: 740
+    minimumWidth: 920
+    minimumHeight: 580
     visible: true
     title: "ArchTitan Settings"
     color: "transparent"
     flags: Qt.Window | Qt.FramelessWindowHint
 
-    // ── Design tokens ─────────────────────────────────────────────
-    readonly property color bgDeep:       "#07070F"
-    readonly property color bgDark:       "#0B0B15"
-    readonly property color bgPanel:      "#0F0F1A"
-    readonly property color bgCard:       "#13131F"
-    readonly property color bgHover:      "#1A1A2A"
-    readonly property color borderAccent: "#7AA2F7"
-    readonly property color borderSubtle: "#FFFFFF14"
-    readonly property color borderGlow:   "#7AA2F730"
-    readonly property color textPrimary:  "#E8E8F5"
-    readonly property color textSecondary:"#8A94B8"
-    readonly property color textAccent:   "#7AA2F7"
-    readonly property color textDim:      "#555878"
-    readonly property color accentBlue:   "#7AA2F7"
-    readonly property color accentCyan:   "#00D4FF"
-    readonly property color accentGreen:  "#9ECE6A"
-    readonly property color accentRed:    "#F7768E"
-    readonly property color accentOrange: "#FF9E64"
-    readonly property color accentPurple: "#BB9AF7"
+    // ── Design tokens ──────────────────────────────────────────────
+    readonly property color bg0:          "#0D0D0D"   // deepest bg
+    readonly property color bg1:          "#111111"   // window bg
+    readonly property color bg2:          "#171717"   // sidebar bg
+    readonly property color bg3:          "#1C1C1C"   // card/row bg
+    readonly property color bg4:          "#242424"   // hover bg
+    readonly property color border0:      "#2A2A2A"   // strong border
+    readonly property color border1:      "#1F1F1F"   // subtle border
+    readonly property color accent:       "#4C8BF5"   // blue accent (muted)
+    readonly property color accentDim:    "#2A4D8F"   // accent background
+    readonly property color textHigh:     "#EBEBEB"   // primary text
+    readonly property color textMid:      "#8C8C8C"   // secondary text
+    readonly property color textLow:      "#4A4A4A"   // disabled / dim text
+    readonly property color green:        "#4CAF82"
+    readonly property color red:          "#E05C6A"
+    readonly property color orange:       "#D4853A"
+    readonly property color purple:       "#7C6FCD"
 
-    readonly property int sidebarWidth: 230
+    readonly property int sidebarW: 220
     property int currentPage: 0
 
     readonly property var pages: [
-        { name: "Appearance",  icon: "✦",  page: appearancePage  },
-        { name: "Display",     icon: "⬡",  page: displayPage     },
-        { name: "Network",     icon: "◈",  page: networkPage     },
-        { name: "Audio",       icon: "◉",  page: audioPage       },
-        { name: "Power",       icon: "⬟",  page: powerPage       },
-        { name: "Security",    icon: "◆",  page: securityPage    },
-        { name: "System",      icon: "⬢",  page: systemPage      },
-        { name: "About",       icon: "◇",  page: aboutPage       }
+        { name: "Appearance",  icon: "appearance", label: "Appearance"  },
+        { name: "Display",     icon: "display",    label: "Display"      },
+        { name: "Network",     icon: "network",    label: "Network"      },
+        { name: "Audio",       icon: "audio",      label: "Audio"        },
+        { name: "Power",       icon: "power",      label: "Power"        },
+        { name: "Security",    icon: "security",   label: "Security"     },
+        { name: "System",      icon: "system",     label: "System"       },
+        { name: "About",       icon: "about",      label: "About"        }
     ]
 
-    // ── Window drag ───────────────────────────────────────────────
+    // ── Window drag ────────────────────────────────────────────────
     MouseArea {
-        id: dragArea
         anchors { top: parent.top; left: parent.left; right: parent.right }
-        height: 60
+        height: 52
         property point clickPos
-        onPressed: (mouse) => { clickPos = Qt.point(mouse.x, mouse.y) }
+        onPressed:  (mouse) => { clickPos = Qt.point(mouse.x, mouse.y) }
         onPositionChanged: (mouse) => {
-            var dx = mouse.x - clickPos.x
-            var dy = mouse.y - clickPos.y
-            root.x += dx; root.y += dy
+            root.x += mouse.x - clickPos.x
+            root.y += mouse.y - clickPos.y
         }
         z: -1
     }
 
-    // ── Root background ───────────────────────────────────────────
+    // ── Window shell ───────────────────────────────────────────────
     Rectangle {
-        id: mainWindow
         anchors.fill: parent
-        radius: 20
-        color: root.bgDeep
+        radius: 12
+        color: root.bg1
         clip: true
 
-        // ── Animated ambient orbs ─────────────────────────────────
-        // Top-left blue orb
-        Rectangle {
-            id: orb1
-            width: 500; height: 500
-            x: -160; y: -200
-            radius: 250
-            color: "transparent"
-
-            SequentialAnimation on opacity {
-                running: true; loops: Animation.Infinite
-                NumberAnimation { to: 0.07; duration: 4000; easing.type: Easing.InOutSine }
-                NumberAnimation { to: 0.12; duration: 4000; easing.type: Easing.InOutSine }
-            }
-
-            RadialGradient {
-                anchors.fill: parent
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#7AA2F7" }
-                    GradientStop { position: 1.0; color: "transparent" }
-                }
-            }
-        }
-
-        // Bottom-right purple orb
-        Rectangle {
-            id: orb2
-            width: 420; height: 420
-            x: root.width - 200; y: root.height - 180
-            radius: 210
-            color: "transparent"
-
-            SequentialAnimation on opacity {
-                running: true; loops: Animation.Infinite
-                NumberAnimation { to: 0.05; duration: 5000; easing.type: Easing.InOutSine }
-                NumberAnimation { to: 0.09; duration: 5000; easing.type: Easing.InOutSine }
-            }
-
-            RadialGradient {
-                anchors.fill: parent
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#BB9AF7" }
-                    GradientStop { position: 1.0; color: "transparent" }
-                }
-            }
-        }
-
-        // Top-right cyan accent orb
-        Rectangle {
-            id: orb3
-            width: 280; height: 280
-            x: root.width - 60; y: -80
-            radius: 140
-            color: "transparent"
-            opacity: 0.06
-
-            RadialGradient {
-                anchors.fill: parent
-                gradient: Gradient {
-                    GradientStop { position: 0.0; color: "#00D4FF" }
-                    GradientStop { position: 1.0; color: "transparent" }
-                }
-            }
-        }
-
-        // ── Outer border glow ─────────────────────────────────────
+        // Outer border
         Rectangle {
             anchors.fill: parent
             radius: parent.radius
             color: "transparent"
             border.width: 1
-            border.color: root.borderSubtle
+            border.color: root.border0
         }
 
         RowLayout {
@@ -153,74 +82,68 @@ ApplicationWindow {
 
             // ── Sidebar ───────────────────────────────────────────
             Rectangle {
-                id: sidebar
-                Layout.preferredWidth: root.sidebarWidth
+                Layout.preferredWidth: root.sidebarW
                 Layout.fillHeight: true
-                color: "#09091480"
-                radius: 20
+                color: root.bg2
+                radius: 12
 
-                // Right-side square corners
+                // Square off right corners
                 Rectangle {
                     anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
-                    width: parent.radius
+                    width: 12
                     color: parent.color
                 }
 
-                // Right border with subtle glow
+                // Right border
                 Rectangle {
                     anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
                     width: 1
-                    color: root.borderSubtle
+                    color: root.border1
                 }
 
                 ColumnLayout {
-                    anchors { fill: parent; margins: 0 }
+                    anchors.fill: parent
                     spacing: 0
 
-                    // ── Logo area ─────────────────────────────────
+                    // ── Logo ──────────────────────────────────────
                     Item {
                         Layout.fillWidth: true
-                        height: 88
+                        height: 72
 
                         RowLayout {
-                            anchors { left: parent.left; leftMargin: 24; verticalCenter: parent.verticalCenter }
-                            spacing: 14
+                            anchors {
+                                left: parent.left; leftMargin: 20
+                                verticalCenter: parent.verticalCenter
+                            }
+                            spacing: 12
 
-                            // Hexagon logo mark
-                            Item {
-                                width: 40; height: 40
+                            // Logo mark
+                            Rectangle {
+                                width: 32; height: 32; radius: 8
+                                color: root.accentDim
+                                border.width: 1
+                                border.color: root.accent
 
-                                Rectangle {
+                                Image {
                                     anchors.centerIn: parent
-                                    width: 40; height: 40; radius: 10
-                                    color: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.15)
-                                    border.width: 1
-                                    border.color: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.35)
-
-                                    SequentialAnimation on border.color {
-                                        running: true; loops: Animation.Infinite
-                                        ColorAnimation { to: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.6); duration: 2000 }
-                                        ColorAnimation { to: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.25); duration: 2000 }
-                                    }
-                                }
-
-                                Text {
-                                    anchors.centerIn: parent
-                                    text: "⬡"
-                                    font.pixelSize: 20
-                                    color: root.accentBlue
+                                    width: 18; height: 18
+                                    source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.svg"
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
                                 }
                             }
 
                             Column {
-                                spacing: 3
+                                spacing: 2
                                 Text {
                                     text: "ArchTitan"
-                                    font { pixelSize: 15; weight: Font.Bold; family: "Inter"; letterSpacing: 0.5 }
+                                    font { pixelSize: 14; weight: Font.SemiBold; family: "Inter" }
+                                    color: root.textHigh
                                 }
                                 Text {
                                     text: "Settings"
-                                    font { pixelSize: 11; family: "Inter"; weight: Font.Light; letterSpacing: 1.5 }
+                                    font { pixelSize: 11; family: "Inter" }
+                                    color: root.textLow
                                 }
                             }
                         }
@@ -229,25 +152,25 @@ ApplicationWindow {
                     // Divider
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.leftMargin: 16; Layout.rightMargin: 16
                         height: 1
-                        color: root.borderSubtle
+                        color: root.border1
                     }
 
-                    Item { height: 14 }
+                    Item { height: 8 }
 
                     // ── Nav items ─────────────────────────────────
                     Repeater {
                         model: root.pages
                         delegate: SidebarItem {
                             Layout.fillWidth: true
-                            icon: modelData.icon
-                            label: modelData.name
+                            iconSource: "qrc:/ArchTitanSettings/assets/icons/" + modelData.icon + ".svg"
+                            label: modelData.label
                             active: root.currentPage === index
-                            accentColor: root.accentBlue
-                            bgHoverColor: root.bgHover
-                            textPrimColor: root.textPrimary
-                            textDimColor: root.textDim
+                            accent:   root.accent
+                            bgActive:  root.bg3
+                            bgHover:   root.bg4
+                            textActive: root.textHigh
+                            textNormal: root.textMid
                             onClicked: root.currentPage = index
                         }
                     }
@@ -257,42 +180,39 @@ ApplicationWindow {
                     // ── Bottom status ─────────────────────────────
                     Rectangle {
                         Layout.fillWidth: true
-                        Layout.leftMargin: 16; Layout.rightMargin: 16
                         height: 1
-                        color: root.borderSubtle
+                        color: root.border1
                     }
 
                     Item {
                         Layout.fillWidth: true
-                        height: 64
+                        height: 56
 
                         Row {
-                            anchors { left: parent.left; leftMargin: 22; verticalCenter: parent.verticalCenter }
-                            spacing: 10
+                            anchors {
+                                left: parent.left; leftMargin: 18
+                                verticalCenter: parent.verticalCenter
+                            }
+                            spacing: 8
 
                             Rectangle {
-                                width: 8; height: 8; radius: 4
-                                color: root.accentGreen
+                                width: 7; height: 7; radius: 4
+                                color: root.green
                                 anchors.verticalCenter: parent.verticalCenter
-                                SequentialAnimation on opacity {
-                                    running: true; loops: Animation.Infinite
-                                    NumberAnimation { to: 0.4; duration: 1200 }
-                                    NumberAnimation { to: 1.0; duration: 1200 }
-                                }
                             }
 
                             Column {
-                                spacing: 3
+                                spacing: 2
+                                anchors.verticalCenter: parent.verticalCenter
                                 Text {
                                     text: "ArchTitan OS"
                                     font { pixelSize: 11; family: "Inter"; weight: Font.Medium }
-                                    color: root.textSecondary
+                                    color: root.textMid
                                 }
                                 Text {
                                     text: "Settings v1.0"
                                     font { pixelSize: 10; family: "Inter" }
-                                    color: root.textDim
-                                    opacity: 0.7
+                                    color: root.textLow
                                 }
                             }
                         }
@@ -309,73 +229,53 @@ ApplicationWindow {
                 Rectangle {
                     id: titleBar
                     anchors { top: parent.top; left: parent.left; right: parent.right }
-                    height: 62
+                    height: 52
                     color: "transparent"
 
                     RowLayout {
-                        anchors { fill: parent; leftMargin: 32; rightMargin: 20; topMargin: 2 }
+                        anchors { fill: parent; leftMargin: 28; rightMargin: 18 }
 
                         Column {
-                            spacing: 3
+                            spacing: 2
                             Text {
-                                text: root.pages[root.currentPage].icon + "  " + root.pages[root.currentPage].name
-                                font { pixelSize: 20; weight: Font.SemiBold; family: "Inter" }
-                                color: root.textPrimary
-                            }
-                            Text {
-                                text: "Configure your " + root.pages[root.currentPage].name.toLowerCase() + " preferences"
-                                font { pixelSize: 11; family: "Inter" }
-                                color: root.textDim
+                                text: root.pages[root.currentPage].label
+                                font { pixelSize: 17; weight: Font.SemiBold; family: "Inter" }
+                                color: root.textHigh
                             }
                         }
 
                         Item { Layout.fillWidth: true }
 
-                        // ── macOS-style window controls ────────────
+                        // Window controls
                         RowLayout {
-                            spacing: 10
+                            spacing: 8
 
                             Repeater {
                                 model: [
-                                    { color: "#FF5F57", hcolor: "#FF2D20", action: "close",    symbol: "×" },
-                                    { color: "#FFBD2E", hcolor: "#FFB500", action: "minimize", symbol: "−" },
-                                    { color: "#28CA41", hcolor: "#1DAF38", action: "maximize", symbol: "+" }
+                                    { col: "#ED6A5E", hov: "#C9504A", act: "close",    sym: "×" },
+                                    { col: "#F5BF4F", hov: "#D4A030", act: "minimize", sym: "−" },
+                                    { col: "#61C554", hov: "#48A83D", act: "maximize", sym: "+" }
                                 ]
                                 delegate: Item {
-                                    width: 14; height: 14
-
+                                    width: 13; height: 13
                                     Rectangle {
-                                        anchors.fill: parent
-                                        radius: 7
-                                        color: wctrl.containsMouse ? modelData.hcolor : modelData.color
-                                        Behavior on color { ColorAnimation { duration: 100 } }
-
-                                        // Inner shine
-                                        Rectangle {
-                                            width: parent.width * 0.5; height: parent.height * 0.3
-                                            x: parent.width * 0.2; y: parent.height * 0.12
-                                            radius: height / 2
-                                            color: "#FFFFFF"
-                                            opacity: 0.3
-                                        }
+                                        anchors.fill: parent; radius: 7
+                                        color: wc.containsMouse ? modelData.hov : modelData.col
+                                        Behavior on color { ColorAnimation { duration: 80 } }
                                     }
-
                                     Text {
                                         anchors.centerIn: parent
-                                        text: modelData.symbol
-                                        font { pixelSize: 10; weight: Font.Bold }
-                                        color: "#00000080"
-                                        visible: wctrl.containsMouse
+                                        text: modelData.sym
+                                        font { pixelSize: 9; weight: Font.Bold }
+                                        color: "#00000070"
+                                        visible: wc.containsMouse
                                     }
-
                                     MouseArea {
-                                        id: wctrl
-                                        anchors.fill: parent
-                                        hoverEnabled: true
+                                        id: wc; anchors.fill: parent; hoverEnabled: true
                                         cursorShape: Qt.PointingHandCursor
                                         onClicked: {
-                                            if (modelData.action === "close") root.close()
-                                            else if (modelData.action === "minimize") root.showMinimized()
+                                            if (modelData.act === "close")    root.close()
+                                            else if (modelData.act === "minimize") root.showMinimized()
                                             else root.showMaximized()
                                         }
                                     }
@@ -384,15 +284,14 @@ ApplicationWindow {
                         }
                     }
 
-                    // Bottom border
                     Rectangle {
                         anchors { bottom: parent.bottom; left: parent.left; right: parent.right }
                         height: 1
-                        color: root.borderSubtle
+                        color: root.border1
                     }
                 }
 
-                // ── Page content ──────────────────────────────────
+                // ── Page stack ────────────────────────────────────
                 Item {
                     anchors { top: titleBar.bottom; bottom: parent.bottom; left: parent.left; right: parent.right }
                     clip: true

@@ -4,81 +4,45 @@ import ArchTitanSettings
 
 Rectangle {
     id: root
-    color: "#0F0F1B"
-    radius: 14
+    color: "#161616"
+    radius: 10
     border.width: 1
-    border.color: hover.containsMouse ? "#FFFFFF1E" : "#FFFFFF0C"
-    implicitHeight: column.implicitHeight + 40
+    border.color: hover.containsMouse ? "#2F2F2F" : "#1F1F1F"
+    implicitHeight: col.implicitHeight + 36
     clip: true
 
-    Behavior on border.color { ColorAnimation { duration: 200 } }
+    Behavior on border.color { ColorAnimation { duration: 150 } }
 
-    default property alias content: column.children
+    default property alias content: col.children
     property string title: ""
     property string headerIcon: ""
 
-    // ── Lift on hover ─────────────────────────────────────────────
-    property real hoverScale: 1.0
-    scale: hoverScale
-    Behavior on hoverScale { NumberAnimation { duration: 180; easing.type: Easing.OutQuad } }
-
-    // ── Glass gradient overlay ────────────────────────────────────
-    Rectangle {
-        anchors.fill: parent
-        radius: parent.radius
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "#FFFFFF07" }
-            GradientStop { position: 0.4; color: "#FFFFFF03" }
-            GradientStop { position: 1.0; color: "transparent" }
-        }
-    }
-
-    // ── Top shimmer line ──────────────────────────────────────────
-    Rectangle {
-        anchors { top: parent.top; left: parent.left; right: parent.right; topMargin: 1; leftMargin: 1; rightMargin: 1 }
-        height: 1
-        radius: parent.parent.radius
-        color: "#FFFFFF12"
-    }
-
     ColumnLayout {
-        id: column
-        anchors { fill: parent; margins: 22 }
+        id: col
+        anchors { fill: parent; margins: 20 }
         spacing: 0
 
-        // ── Optional title row ────────────────────────────────────
-        RowLayout {
+        // Optional title
+        Item {
             visible: root.title !== ""
             Layout.fillWidth: true
-            Layout.bottomMargin: 16
-            spacing: 8
+            height: 28
 
             Text {
-                text: root.headerIcon
-                font.pixelSize: 11
-                visible: root.headerIcon !== ""
-                color: "#7AA2F7"
+                anchors.verticalCenter: parent.verticalCenter
+                text: root.title.toUpperCase()
+                font { pixelSize: 10; weight: Font.SemiBold; family: "Inter"; letterSpacing: 1.2 }
+                color: "#4A4A4A"
             }
+        }
 
-            Text {
-                text: root.title
-                font {
-                    pixelSize: 10
-                    weight: Font.Bold
-                    family: "Inter"
-                    letterSpacing: 1.8
-                }
-                color: "#4A5070"
-            }
-
-            Item { Layout.fillWidth: true }
-
-            // Title accent dot
-            Rectangle {
-                width: 4; height: 4; radius: 2
-                color: "#7AA2F740"
-                visible: root.title !== ""
-            }
+        // Subtle divider under title
+        Rectangle {
+            visible: root.title !== ""
+            Layout.fillWidth: true
+            height: 1
+            color: "#1F1F1F"
+            Layout.bottomMargin: 12
         }
     }
 
@@ -86,7 +50,6 @@ Rectangle {
         id: hover
         anchors.fill: parent
         hoverEnabled: true
-        onEntered: root.hoverScale = 1.005
-        onExited:  root.hoverScale = 1.0
+        acceptedButtons: Qt.NoButton
     }
 }

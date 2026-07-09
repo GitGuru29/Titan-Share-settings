@@ -8,192 +8,124 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textPrimary:   "#E8E8F5"
-    property color textSecondary: "#8A94B8"
-    property color textDim:       "#555878"
-    property color accentBlue:    "#7AA2F7"
+    property color textHigh: "#EBEBEB"
+    property color textMid:  "#8C8C8C"
+    property color textLow:  "#4A4A4A"
+    property color accent:   "#4C8BF5"
 
     ColumnLayout {
-        width: root.width
-        spacing: 0
+        width: root.width; spacing: 0
 
-        Item { height: 48 }
+        Item { height: 36 }
 
-        // ── Hero logo ─────────────────────────────────────────────
+        // ── Hero ─────────────────────────────────────────────────
         Item {
             Layout.alignment: Qt.AlignHCenter
-            Layout.fillWidth: true
-            height: 130
+            Layout.fillWidth: true; height: 100
 
-            // Outer glow ring
             Rectangle {
                 anchors.centerIn: parent
-                width: 120; height: 120; radius: 60
-                color: "transparent"
-                border.width: 1
-                border.color: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.15)
+                width: 80; height: 80; radius: 20
+                color: "#1A2030"
+                border.width: 1; border.color: "#2A3A5A"
 
-                SequentialAnimation on border.color {
-                    running: true; loops: Animation.Infinite
-                    ColorAnimation { to: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.4); duration: 2500 }
-                    ColorAnimation { to: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.10); duration: 2500 }
-                }
-            }
-
-            // Mid ring
-            Rectangle {
-                anchors.centerIn: parent
-                width: 96; height: 96; radius: 48
-                color: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.07)
-                border.width: 1
-                border.color: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.25)
-
-                SequentialAnimation on scale {
-                    running: true; loops: Animation.Infinite
-                    NumberAnimation { to: 1.04; duration: 2200; easing.type: Easing.InOutSine }
-                    NumberAnimation { to: 1.00; duration: 2200; easing.type: Easing.InOutSine }
-                }
-            }
-
-            // Core
-            Rectangle {
-                anchors.centerIn: parent
-                width: 72; height: 72; radius: 36
-                color: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.12)
-                border.width: 1
-                border.color: Qt.rgba(root.accentBlue.r, root.accentBlue.g, root.accentBlue.b, 0.5)
-            }
-
-            Text {
-                anchors.centerIn: parent
-                text: "⬡"
-                font.pixelSize: 42
-                color: root.accentBlue
-
-                SequentialAnimation on opacity {
-                    running: true; loops: Animation.Infinite
-                    NumberAnimation { to: 0.7; duration: 2000 }
-                    NumberAnimation { to: 1.0; duration: 2000 }
+                Image {
+                    anchors.centerIn: parent
+                    width: 48; height: 48
+                    source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.svg"
+                    fillMode: Image.PreserveAspectFit; smooth: true
                 }
             }
         }
 
-        Item { height: 20 }
+        Item { height: 16 }
 
         Column {
             Layout.alignment: Qt.AlignHCenter
-            spacing: 10
+            spacing: 8
 
             Text {
                 text: "ArchTitan OS"
                 anchors.horizontalCenter: parent.horizontalCenter
-                font { pixelSize: 32; weight: Font.Bold; family: "Inter"; letterSpacing: -0.5 }
+                font { pixelSize: 28; weight: Font.Bold; family: "Inter" }
+                color: root.textHigh
             }
 
-            // Tagline with gradient accent words
-            Row {
+            Text {
+                text: "Precision · Performance · Privacy"
                 anchors.horizontalCenter: parent.horizontalCenter
-                spacing: 12
-
-                Repeater {
-                    model: ["Precision", "·", "Performance", "·", "Privacy"]
-                    delegate: Text {
-                        text: modelData
-                        font { pixelSize: 13; family: "Inter"; italic: modelData === "·" ? false : true }
-                        color: modelData === "·" ? root.textDim : root.accentBlue
-                        opacity: modelData === "·" ? 0.4 : 0.85
-                    }
-                }
+                font { pixelSize: 12; family: "Inter"; italic: true }
+                color: root.textMid
             }
         }
 
-        Item { height: 40 }
+        Item { height: 32 }
 
-        // ── Version card ──────────────────────────────────────────
+        // ── Version card ─────────────────────────────────────────
         SettingsCard {
-            Layout.fillWidth: true
-            Layout.leftMargin: 28; Layout.rightMargin: 28
-            title: "VERSION INFO"
+            Layout.fillWidth: true; Layout.leftMargin: 24; Layout.rightMargin: 24
+            title: "Version Info"
 
             GridLayout {
                 Layout.fillWidth: true
-                columns: 2; rowSpacing: 18; columnSpacing: 32
+                columns: 2; rowSpacing: 14; columnSpacing: 32
 
                 Repeater {
                     model: [
-                        { label: "OS VERSION",   value: SystemInfo.osVersion,             color: "#7AA2F7" },
-                        { label: "KERNEL",       value: SystemInfo.kernelVersion,          color: "#9ECE6A" },
-                        { label: "SETTINGS APP", value: "v" + SettingsBackend.version(),   color: "#BB9AF7" },
-                        { label: "QT VERSION",   value: "6.x (QML)",                      color: "#73DACA" },
-                        { label: "DESKTOP",      value: "Hyprland (Wayland)",              color: "#E0AF68" },
-                        { label: "PACKAGE MGR",  value: "pacman + AUR",                   color: "#7AA2F7" }
+                        { label: "OS Version",   value: SystemInfo.osVersion                   },
+                        { label: "Kernel",        value: SystemInfo.kernelVersion               },
+                        { label: "Settings App",  value: "v" + SettingsBackend.version()        },
+                        { label: "Qt Version",    value: "6.x (QML)"                           },
+                        { label: "Desktop",       value: "Hyprland (Wayland)"                  },
+                        { label: "Package Mgr",   value: "pacman + AUR"                        }
                     ]
                     delegate: Column {
-                        spacing: 5
+                        spacing: 4
                         Text {
-                            text: modelData.label
-                            font { pixelSize: 9; weight: Font.Bold; family: "Inter"; letterSpacing: 1.6 }
-                            color: root.textDim
+                            text: modelData.label.toUpperCase()
+                            font { pixelSize: 9; weight: Font.SemiBold; family: "Inter"; letterSpacing: 1.2 }
+                            color: root.textLow
                         }
                         Text {
                             text: modelData.value
-                            font { pixelSize: 14; weight: Font.SemiBold; family: "Inter" }
-                            color: modelData.color
+                            font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                            color: root.textHigh
                         }
                     }
                 }
             }
         }
 
-        Item { height: 14 }
+        Item { height: 12 }
 
-        // ── Built with ────────────────────────────────────────────
+        // ── Built with ───────────────────────────────────────────
         SettingsCard {
-            Layout.fillWidth: true
-            Layout.leftMargin: 28; Layout.rightMargin: 28
-            title: "BUILT WITH"
+            Layout.fillWidth: true; Layout.leftMargin: 24; Layout.rightMargin: 24
+            title: "Built With"
 
             Flow {
-                Layout.fillWidth: true
-                spacing: 10
+                Layout.fillWidth: true; spacing: 8
 
                 Repeater {
-                    model: [
-                        { text: "Qt6 / QML",    clr: "#7AA2F7" },
-                        { text: "Hyprland",     clr: "#BB9AF7" },
-                        { text: "PipeWire",     clr: "#E0AF68" },
-                        { text: "NetworkManager",clr:"#9ECE6A" },
-                        { text: "Wayland",      clr: "#73DACA" },
-                        { text: "nspawn",       clr: "#F7768E" },
-                        { text: "swww",         clr: "#7AA2F7" },
-                        { text: "fish shell",   clr: "#9ECE6A" },
-                        { text: "kitty",        clr: "#BB9AF7" },
-                        { text: "rofi",         clr: "#E0AF68" },
-                        { text: "waybar",       clr: "#73DACA" },
-                        { text: "Arch Linux",   clr: "#7AA2F7" }
-                    ]
+                    model: ["Qt6 / QML", "Hyprland", "PipeWire", "NetworkManager",
+                            "Wayland", "nspawn", "swww", "fish shell", "kitty", "rofi", "waybar", "Arch Linux"]
                     delegate: Rectangle {
-                        height: 28; radius: 14
-                        width: tagLabel.implicitWidth + 24
-                        color: Qt.rgba(Qt.color(modelData.clr).r, Qt.color(modelData.clr).g, Qt.color(modelData.clr).b, 0.10)
-                        border.width: 1
-                        border.color: Qt.rgba(Qt.color(modelData.clr).r, Qt.color(modelData.clr).g, Qt.color(modelData.clr).b, 0.28)
-
-                        scale: tagHov.containsMouse ? 1.05 : 1.0
-                        Behavior on scale { NumberAnimation { duration: 120 } }
+                        height: 26; radius: 13
+                        width: tagLbl.implicitWidth + 20
+                        color: "#1A1A1A"
+                        border.width: 1; border.color: "#2A2A2A"
 
                         Text {
-                            id: tagLabel
+                            id: tagLbl
                             anchors.centerIn: parent
-                            text: modelData.text
-                            font { pixelSize: 11; family: "Inter"; weight: Font.Medium }
-                            color: modelData.clr
+                            text: modelData
+                            font { pixelSize: 11; family: "Inter" }
+                            color: root.textMid
                         }
 
-                        MouseArea {
-                            id: tagHov
-                            anchors.fill: parent
-                            hoverEnabled: true
+                        MouseArea { anchors.fill: parent; hoverEnabled: true
+                            onEntered: parent.border.color = "#3A3A3A"
+                            onExited:  parent.border.color = "#2A2A2A"
                         }
                     }
                 }
@@ -202,33 +134,31 @@ ScrollView {
 
         Item { height: 20 }
 
-        // ── Links ─────────────────────────────────────────────────
         RowLayout {
-            Layout.fillWidth: true
-            Layout.leftMargin: 28; Layout.rightMargin: 28
-            spacing: 12
+            Layout.fillWidth: true; Layout.leftMargin: 24; Layout.rightMargin: 24
+            spacing: 10
             Item { Layout.fillWidth: true }
-
             Repeater {
                 model: [
-                    { text: "GitHub",       url: "https://github.com/GitGuru29/archtitan-os" },
-                    { text: "Report Issue", url: "https://github.com/GitGuru29/archtitan-os/issues" }
+                    { text: "GitHub",       url: "https://github.com/GitGuru29/archtitan-os"        },
+                    { text: "Report Issue", url: "https://github.com/GitGuru29/archtitan-os/issues"  }
                 ]
                 delegate: TitanButton {
-                    text: modelData.text; primary: false; width: 150
+                    text: modelData.text; primary: false; width: 140
                     onClicked: Qt.openUrlExternally(modelData.url)
                 }
             }
         }
 
-        Item { height: 36 }
+        Item { height: 16 }
 
         Text {
             Layout.alignment: Qt.AlignHCenter
             text: "© 2026 ArchTitan Project  —  Final Year Project"
-            font { pixelSize: 11; family: "Inter"; letterSpacing: 0.5 }
+            font { pixelSize: 11; family: "Inter" }
+            color: root.textLow; opacity: 0.6
         }
 
-        Item { height: 36 }
+        Item { height: 32 }
     }
 }
