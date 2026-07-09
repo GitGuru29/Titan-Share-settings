@@ -27,7 +27,11 @@ Item {
 
         // Left active indicator
         Rectangle {
-            anchors { left: parent.left; leftMargin: -8; top: parent.top; topMargin: 10; bottom: parent.bottom; bottomMargin: 10 }
+            anchors {
+                left: parent.left; leftMargin: -8
+                top: parent.top; topMargin: 10
+                bottom: parent.bottom; bottomMargin: 10
+            }
             width: 3; radius: 2
             color: root.accent
             opacity: root.active ? 1 : 0
@@ -43,26 +47,14 @@ Item {
         }
         spacing: 11
 
-        // Icon container with color tint
-        Item {
+        // Icon — shown directly, opacity indicates active/hover state
+        Image {
             width: 16; height: 16
-
-            Image {
-                id: iconImg
-                anchors.fill: parent
-                source: root.iconSource
-                fillMode: Image.PreserveAspectFit
-                smooth: true
-                visible: false
-            }
-
-            Rectangle {
-                anchors.fill: parent
-                color: root.active ? root.accent : root.textNormal
-                opacity: root.active ? 1.0 : (hover.containsMouse ? 0.75 : 0.45)
-                Behavior on color   { ColorAnimation { duration: 120 } }
-                Behavior on opacity { NumberAnimation  { duration: 120 } }
-            }
+            source: root.iconSource
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            opacity: root.active ? 1.0 : (hover.containsMouse ? 0.65 : 0.35)
+            Behavior on opacity { NumberAnimation { duration: 120 } }
         }
 
         Text {
