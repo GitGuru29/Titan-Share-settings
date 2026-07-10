@@ -160,6 +160,75 @@ ScrollView {
             }
         }
 
+        Item { height: 12 }
+
+        // ── Sandbox management ───────────────────────────────────
+        SettingsCard {
+            Layout.fillWidth: true; Layout.leftMargin: 24; Layout.rightMargin: 24
+            title: "Titan Sandbox Management"
+
+            RowLayout {
+                Layout.fillWidth: true
+                Column {
+                    spacing: 4
+                    Text {
+                        text: "Active Containers"
+                        font { pixelSize: 13; weight: Font.SemiBold; family: "Inter" }
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "systemd-nspawn isolation via machinectl"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
+                }
+                Item { Layout.fillWidth: true }
+                StatusBadge {
+                    text: sandboxList.count > 0 ? sandboxList.count + " Running" : "None Active"
+                    statusColor: sandboxList.count > 0 ? root.green : root.textLow
+                }
+            }
+
+            Item { height: 6 }
+
+            // Container list (replace with real machinectl output in production)
+            Repeater {
+                id: sandboxList
+                model: ["titan-browser", "titan-media"]
+                delegate: ColumnLayout {
+                    Layout.fillWidth: true; spacing: 0
+                    RowLayout {
+                        Layout.fillWidth: true; height: 42; spacing: 12
+                        Rectangle { width: 7; height: 7; radius: 4; color: root.green; anchors.verticalCenter: parent.verticalCenter }
+                        Text {
+                            text: modelData
+                            font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                            color: root.textHigh; Layout.fillWidth: true
+                        }
+                        StatusBadge { text: "Running"; statusColor: root.green }
+                    }
+                    Rectangle { Layout.fillWidth: true; height: 1; color: "#1F1F1F"; visible: index < sandboxList.count - 1 }
+                }
+            }
+
+            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 10
+                TitanButton {
+                    text: "Open Sandbox Shell"
+                    primary: false; width: 160
+                    onClicked: Qt.openUrlExternally("exec:kitty -e machinectl shell titan-browser")
+                }
+                TitanButton {
+                    text: "List All"
+                    primary: false; width: 100
+                    onClicked: Qt.openUrlExternally("exec:kitty -e machinectl list")
+                }
+            }
+        }
+
         Item { height: 24 }
         RowLayout {
             Layout.leftMargin: 24; Layout.rightMargin: 24

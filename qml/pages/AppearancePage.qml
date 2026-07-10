@@ -264,6 +264,58 @@ ScrollView {
             Layout.leftMargin: 24; Layout.rightMargin: 24
             title: "Typography"
 
+            // Font Family row
+            Column {
+                Layout.fillWidth: true
+                spacing: 10
+
+                Row {
+                    spacing: 0
+                    Text {
+                        text: "Font Family"
+                        font { pixelSize: 13; family: "Inter"; weight: Font.Medium }
+                        color: root.textHigh
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+                }
+
+                Flow {
+                    width: parent.width
+                    spacing: 8
+
+                    Repeater {
+                        model: ["Inter", "JetBrains Mono", "Fira Code", "Roboto", "Noto Sans", "Ubuntu", "Cascadia Code"]
+                        delegate: Rectangle {
+                            height: 30
+                            width: ffLabel.implicitWidth + 24
+                            radius: 6
+                            color: SettingsBackend.fontFamily === modelData ? "#1E2A3A" : "#1A1A1A"
+                            border.width: 1
+                            border.color: SettingsBackend.fontFamily === modelData ? root.accent : "#2A2A2A"
+                            Behavior on color       { ColorAnimation { duration: 120 } }
+                            Behavior on border.color{ ColorAnimation { duration: 120 } }
+
+                            Text {
+                                id: ffLabel
+                                anchors.centerIn: parent
+                                text: modelData
+                                font { pixelSize: 12; family: modelData }
+                                color: SettingsBackend.fontFamily === modelData ? root.textHigh : root.textMid
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent; hoverEnabled: true
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: SettingsBackend.fontFamily = modelData
+                            }
+                        }
+                    }
+                }
+            }
+
+            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 4; Layout.bottomMargin: 4 }
+
+            // Font Size row
             RowLayout {
                 Layout.fillWidth: true
                 Column {

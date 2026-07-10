@@ -9,6 +9,11 @@
 #include <unistd.h>
 
 SystemInfo::SystemInfo(QObject *parent) : QObject(parent) {
+    // Eager init of CONSTANT properties before QML first reads them
+    initCpuModel();
+    initTotalRam();
+    initDiskTotal();
+
     m_timer.setInterval(2000);
     connect(&m_timer, &QTimer::timeout, this, &SystemInfo::refresh);
     m_timer.start();
@@ -53,8 +58,7 @@ QString SystemInfo::osVersion() const {
     return "ArchTitan OS";
 }
 
-QString SystemInfo::cpuModel() const {
-    if (!m_cpuModel.isEmpty()) return m_cpuModel;
+void SystemInfo::initCpuModel() {
     QFile f("/proc/cpuinfo");
     if (f.open(QIODevice::ReadOnly)) {
         QTextStream ts(&f);
@@ -62,11 +66,49 @@ QString SystemInfo::cpuModel() const {
             QString line = ts.readLine();
             if (line.startsWith("model name")) {
                 m_cpuModel = line.section(':', 1).trimmed();
-                return m_cpuModel;
+                // Shorten verbose Intel/AMD strings
+                m_cpuModel.replace(QRegularExpression("\\s{2,}"), " ");
+                return;
             }
         }
     }
-    return "Unknown CPU";
+    // Fallback: try /proc/cpuinfo Hardware field (ARM)
+    QFile f2("/proc/cpuinfo");
+    if (f2.open(QIODevice::ReadOnly)) {
+        QTextStream ts(&f2);
+        while (!ts.atEnd()) {
+            QString line = ts.readLine();
+            if (line.startsWith("Hardware")) {
+                m_cpuModel = line.section(':', 1).trimmed();
+                return;
+            }
+        }
+    }
+    m_cpuModel = "Unknown CPU";
+}
+
+void SystemInfo::initTotalRam() {
+    QFile f("/proc/meminfo");
+    if (f.open(QIODevice::ReadOnly)) {
+        QTextStream ts(&f);
+        while (!ts.atEnd()) {
+            QString line = ts.readLine();
+            if (line.startsWith("MemTotal:")) {
+                m_totalRam = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).value(1).toLongLong() / 1024;
+                return;
+            }
+        }
+    }
+}
+
+void SystemInfo::initDiskTotal() {
+    struct statvfs st;
+    if (statvfs("/", &st) == 0)
+        m_diskTotalGb = (double)(st.f_blocks * st.f_frsize) / (1024.0*1024.0*1024.0);
+}
+
+QString SystemInfo::cpuModel() const {
+    return m_cpuModel.isEmpty() ? QStringLiteral("Unknown CPU") : m_cpuModel;
 }
 
 QString SystemInfo::gpuModel() const {
@@ -79,21 +121,9 @@ QString SystemInfo::gpuModel() const {
     return m_gpuModel;
 }
 
-int SystemInfo::totalRam() const {
-    if (m_totalRam > 0) return m_totalRam;
-    QFile f("/proc/meminfo");
-    if (f.open(QIODevice::ReadOnly)) {
-        QTextStream ts(&f);
-        while (!ts.atEnd()) {
-            QString line = ts.readLine();
-            if (line.startsWith("MemTotal:")) {
-                m_totalRam = line.split(QRegularExpression("\\s+"))[1].toInt() / 1024;
-                return m_totalRam;
-            }
-        }
-    }
-    return 0;
-}
+int SystemInfo::totalRam() const { return m_totalRam; }
+
+double SystemInfo::diskTotalGb() const { return m_diskTotalGb; }
 
 int SystemInfo::usedRam() const { return m_usedRam; }
 double SystemInfo::cpuUsage() const { return m_cpuUsage; }
@@ -101,14 +131,6 @@ double SystemInfo::diskUsedGb() const { return m_diskUsedGb; }
 int SystemInfo::batteryLevel() const { return m_batteryLevel; }
 bool SystemInfo::batteryCharging() const { return m_batteryCharging; }
 
-double SystemInfo::diskTotalGb() const {
-    if (m_diskTotalGb > 0) return m_diskTotalGb;
-    struct statvfs st;
-    if (statvfs("/", &st) == 0) {
-        m_diskTotalGb = (double)(st.f_blocks * st.f_frsize) / (1024*1024*1024);
-    }
-    return m_diskTotalGb;
-}
 
 QString SystemInfo::uptime() const {
     QFile f("/proc/uptime");

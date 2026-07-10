@@ -69,4 +69,7 @@ private:
     void readMemory();
     void readDisk();
     void readBattery();
+    void initCpuModel();
+    void initTotalRam();
+    void initDiskTotal();
 };

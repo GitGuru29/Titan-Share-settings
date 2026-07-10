@@ -186,13 +186,16 @@ ScrollView {
 
             GridLayout {
                 Layout.fillWidth: true
-                columns: 2; rowSpacing: 14; columnSpacing: 32
+                columns: 2; rowSpacing: 16; columnSpacing: 32
+
                 Repeater {
                     model: [
-                        { label: "Network",    value: NetworkManager.connectedSsid        },
-                        { label: "IP Address", value: NetworkManager.ipAddress            },
-                        { label: "Signal",     value: NetworkManager.signalStrength + "%" },
-                        { label: "Status",     value: "Active"                            }
+                        { label: "Network",     value: NetworkManager.connectedSsid                  },
+                        { label: "IPv4 Address",value: NetworkManager.ipAddress.length > 0 ? NetworkManager.ipAddress : "—" },
+                        { label: "IPv6 Address",value: NetworkManager.ipv6Address.length > 0 ? NetworkManager.ipv6Address : "—" },
+                        { label: "MAC Address", value: NetworkManager.macAddress.length > 0 ? NetworkManager.macAddress : "—" },
+                        { label: "Link Speed",  value: NetworkManager.linkSpeed.length > 0  ? NetworkManager.linkSpeed  : "—" },
+                        { label: "Signal",      value: NetworkManager.signalStrength + "%"           }
                     ]
                     delegate: Column {
                         spacing: 4
@@ -205,6 +208,9 @@ ScrollView {
                             text: modelData.value
                             font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
                             color: root.textHigh
+                            elide: Text.ElideRight
+                            maximumLineCount: 1
+                            width: 220
                         }
                     }
                 }
