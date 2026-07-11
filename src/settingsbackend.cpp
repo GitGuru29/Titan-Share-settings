@@ -80,7 +80,7 @@ void SettingsBackend::applyAndSave() {
         idleConf.close();
     }
     // Restart swayidle to pick up new config
-    QProcess::startDetached("bash", {"-c", "pkill swayidle; swayidle -w &"});
+    QProcess::startDetached("bash", {"-c", "pkill swayidle 2>/dev/null; command -v swayidle >/dev/null && swayidle -w &"});
 
     // 6. Apply autolock (swaylock timeout via swayidle — already handled above)
     //    If disabled, kill swayidle

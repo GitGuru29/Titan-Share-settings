@@ -15,7 +15,7 @@ Item {
             anchors.verticalCenter: parent.verticalCenter
             text: parent.parent.text.toUpperCase()
             font { pixelSize: 10; family: "Inter" }
-            font.weight: Font.SemiBold
+            font.weight: Font.DemiBold
             font.letterSpacing: 1.2
             color: "#4A4A4A"
         }

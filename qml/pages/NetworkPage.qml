@@ -51,7 +51,7 @@ ScrollView {
                         Text {
                             text: "Wi-Fi"
                             font { pixelSize: 16; family: "Inter" }
-                            font.weight: Font.SemiBold
+                            font.weight: Font.DemiBold
                             color: root.textHigh
                         }
                         StatusBadge {
@@ -206,7 +206,7 @@ ScrollView {
                         Text {
                             text: modelData.label.toUpperCase()
                             font { pixelSize: 9; family: "Inter" }
-                            font.weight: Font.SemiBold
+                            font.weight: Font.DemiBold
                             font.letterSpacing: 1.2
                             color: root.textLow
                         }

@@ -44,7 +44,7 @@ ScrollView {
                     Text {
                         text: "Screen Autolock"
                         font { pixelSize: 13; family: "Inter" }
-                        font.weight: Font.SemiBold
+                        font.weight: Font.DemiBold
                         color: root.textHigh
                     }
                     Text {
@@ -179,7 +179,7 @@ ScrollView {
                     Text {
                         text: "Active Containers"
                         font { pixelSize: 13; family: "Inter" }
-                        font.weight: Font.SemiBold
+                        font.weight: Font.DemiBold
                         color: root.textHigh
                     }
                     Text {

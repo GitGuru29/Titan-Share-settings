@@ -138,7 +138,7 @@ ApplicationWindow {
                                 Text {
                                     text: "ArchTitan"
                                     font { pixelSize: 14; family: "Inter" }
-                                    font.weight: Font.SemiBold
+                                    font.weight: Font.DemiBold
                                     color: root.textHigh
                                 }
                                 Text {
@@ -242,7 +242,7 @@ ApplicationWindow {
                             Text {
                                 text: root.pages[root.currentPage].label
                                 font { pixelSize: 17; family: "Inter" }
-                                font.weight: Font.SemiBold
+                                font.weight: Font.DemiBold
                                 color: root.textHigh
                             }
                         }

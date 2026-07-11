@@ -32,7 +32,7 @@ Rectangle {
                 anchors.verticalCenter: parent.verticalCenter
                 text: root.title.toUpperCase()
                 font { pixelSize: 10; family: "Inter" }
-                font.weight: Font.SemiBold
+                font.weight: Font.DemiBold
                 font.letterSpacing: 1.2
                 color: "#4A4A4A"
             }
