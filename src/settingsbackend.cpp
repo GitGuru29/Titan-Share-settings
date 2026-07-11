@@ -65,7 +65,6 @@ void SettingsBackend::applyAndSave() {
 
     // 5. Apply screen timeout via Hyprland DPMS
     QProcess::startDetached("bash", {"-c",
-        "hyprctl keyword monitor ,preferred,auto,auto,vrr,0 2>/dev/null; "
         "hyprctl keyword decoration:screen_shader '' 2>/dev/null"
     });
     // Write swayidle config for screen-off + suspend

@@ -11,7 +11,7 @@ ScrollView {
     property color textHigh: "#EBEBEB"
     property color textMid:  "#8C8C8C"
     property color textLow:  "#4A4A4A"
-    property color accent:   "#4C8BF5"
+    property color accent:   SettingsBackend.accentColor
 
     ColumnLayout {
         width: root.availableWidth

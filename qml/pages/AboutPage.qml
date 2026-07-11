@@ -11,10 +11,10 @@ ScrollView {
     property color textHigh: "#EBEBEB"
     property color textMid:  "#8C8C8C"
     property color textLow:  "#4A4A4A"
-    property color accent:   "#4C8BF5"
+    property color accent:   SettingsBackend.accentColor
 
     ColumnLayout {
-        width: root.width; spacing: 0
+        width: root.availableWidth; spacing: 0
 
         Item { height: 36 }
 
@@ -148,7 +148,7 @@ ScrollView {
                     { text: "Report Issue", url: "https://github.com/GitGuru29/archtitan-os/issues"  }
                 ]
                 delegate: TitanButton {
-                    text: modelData.text; primary: false; width: 140
+                    text: modelData.text; primary: false; Layout.preferredWidth: 140
                     onClicked: Qt.openUrlExternally(modelData.url)
                 }
             }

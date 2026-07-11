@@ -23,8 +23,8 @@ ApplicationWindow {
     readonly property color bg4:          "#242424"   // hover bg
     readonly property color border0:      "#2A2A2A"   // strong border
     readonly property color border1:      "#1F1F1F"   // subtle border
-    readonly property color accent:       "#4C8BF5"   // blue accent (muted)
-    readonly property color accentDim:    "#2A4D8F"   // accent background
+    property color accent:       SettingsBackend.accentColor
+    property color accentDim:    Qt.alpha(SettingsBackend.accentColor, 0.25)
     readonly property color textHigh:     "#EBEBEB"   // primary text
     readonly property color textMid:      "#8C8C8C"   // secondary text
     readonly property color textLow:      "#4A4A4A"   // disabled / dim text

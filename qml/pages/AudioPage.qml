@@ -11,7 +11,7 @@ ScrollView {
     property color textHigh: "#EBEBEB"
     property color textMid:  "#8C8C8C"
     property color textLow:  "#4A4A4A"
-    property color accent:   "#4C8BF5"
+    property color accent:   SettingsBackend.accentColor
     property color red:      "#E05C6A"
     property color purple:   "#7C6FCD"
 
