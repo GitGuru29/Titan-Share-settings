@@ -58,14 +58,16 @@ ScrollView {
                             Text {
                                 anchors.centerIn: parent
                                 text: index === 0 ? "↓" : index === 1 ? "~" : "↑"
-                                font { pixelSize: 18; weight: Font.Bold; family: "Inter" }
+                                font { pixelSize: 18; family: "Inter" }
+                                font.weight: Font.Bold
                                 color: modelData.accent
                             }
                         }
 
                         Text {
                             text: modelData.name
-                            font { pixelSize: 12; weight: Font.Medium; family: "Inter" }
+                            font { pixelSize: 12; family: "Inter" }
+                            font.weight: Font.Medium
                             color: sel ? root.textHigh : root.textMid
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
@@ -100,7 +102,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Screen Off After"
-                        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textHigh
                     }
                     Text {
@@ -119,7 +122,8 @@ ScrollView {
                     text: SettingsBackend.screenTimeout >= 60
                           ? Math.floor(SettingsBackend.screenTimeout / 60) + " m"
                           : SettingsBackend.screenTimeout + " s"
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: root.accent; Layout.preferredWidth: 40
                     horizontalAlignment: Text.AlignRight
                 }
@@ -133,7 +137,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Suspend After"
-                        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textHigh
                     }
                     Text {
@@ -150,7 +155,8 @@ ScrollView {
                 }
                 Text {
                     text: Math.floor(SettingsBackend.suspendTimeout / 60) + " m"
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: root.accent; Layout.preferredWidth: 40
                     horizontalAlignment: Text.AlignRight
                 }
@@ -174,7 +180,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: SystemInfo.batteryLevel + "%"
-                        font { pixelSize: 32; weight: Font.Bold; family: "Inter" }
+                        font { pixelSize: 32; family: "Inter" }
+                        font.weight: Font.Bold
                         color: SystemInfo.batteryLevel > 40 ? root.green
                              : SystemInfo.batteryLevel > 20 ? root.orange : root.red
                         Behavior on color { ColorAnimation { duration: 500 } }
@@ -190,7 +197,7 @@ ScrollView {
 
                 // Battery bar
                 Item {
-                    width: 120; height: 48; anchors.verticalCenter: parent.verticalCenter
+                    width: 120; height: 48; Layout.alignment: Qt.AlignVCenter
 
                     Rectangle {
                         anchors { left: parent.left; top: parent.top; bottom: parent.bottom }

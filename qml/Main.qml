@@ -137,7 +137,8 @@ ApplicationWindow {
                                 spacing: 2
                                 Text {
                                     text: "ArchTitan"
-                                    font { pixelSize: 14; weight: Font.SemiBold; family: "Inter" }
+                                    font { pixelSize: 14; family: "Inter" }
+                                    font.weight: Font.SemiBold
                                     color: root.textHigh
                                 }
                                 Text {
@@ -206,7 +207,8 @@ ApplicationWindow {
                                 anchors.verticalCenter: parent.verticalCenter
                                 Text {
                                     text: "ArchTitan OS"
-                                    font { pixelSize: 11; family: "Inter"; weight: Font.Medium }
+                                    font { pixelSize: 11; family: "Inter" }
+                                    font.weight: Font.Medium
                                     color: root.textMid
                                 }
                                 Text {
@@ -239,7 +241,8 @@ ApplicationWindow {
                             spacing: 2
                             Text {
                                 text: root.pages[root.currentPage].label
-                                font { pixelSize: 17; weight: Font.SemiBold; family: "Inter" }
+                                font { pixelSize: 17; family: "Inter" }
+                                font.weight: Font.SemiBold
                                 color: root.textHigh
                             }
                         }
@@ -266,7 +269,8 @@ ApplicationWindow {
                                     Text {
                                         anchors.centerIn: parent
                                         text: modelData.sym
-                                        font { pixelSize: 9; weight: Font.Bold }
+                                        font.pixelSize: 9
+                                        font.weight: Font.Bold
                                         color: "#00000070"
                                         visible: wc.containsMouse
                                     }

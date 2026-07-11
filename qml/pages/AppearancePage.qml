@@ -146,7 +146,8 @@ ScrollView {
                     Text {
                         anchors.centerIn: parent
                         text: SettingsBackend.accentColor
-                        font { pixelSize: 10; family: "Inter"; weight: Font.Medium }
+                        font { pixelSize: 10; family: "Inter" }
+                        font.weight: Font.Medium
                         color: "#FFFFFF"
                     }
                 }
@@ -167,7 +168,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Blur / Transparency"
-                        font { pixelSize: 13; family: "Inter"; weight: Font.Medium }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textHigh
                     }
                     Text {
@@ -191,7 +193,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Panel Opacity"
-                        font { pixelSize: 13; family: "Inter"; weight: Font.Medium }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textHigh
                     }
                     Text {
@@ -208,7 +211,8 @@ ScrollView {
                 }
                 Text {
                     text: Math.round(SettingsBackend.panelOpacity * 100) + "%"
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: root.accent
                     Layout.preferredWidth: 40
                     horizontalAlignment: Text.AlignRight
@@ -273,7 +277,8 @@ ScrollView {
                     spacing: 0
                     Text {
                         text: "Font Family"
-                        font { pixelSize: 13; family: "Inter"; weight: Font.Medium }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textHigh
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -322,7 +327,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Font Size"
-                        font { pixelSize: 13; family: "Inter"; weight: Font.Medium }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textHigh
                     }
                     Text {
@@ -339,7 +345,8 @@ ScrollView {
                 }
                 Text {
                     text: SettingsBackend.fontSize + " pt"
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: root.accent
                     Layout.preferredWidth: 40
                     horizontalAlignment: Text.AlignRight

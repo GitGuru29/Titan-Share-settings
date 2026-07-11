@@ -27,7 +27,8 @@ Rectangle {
         id: label
         anchors.centerIn: parent
         text: root.text
-        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+        font { pixelSize: 13; family: "Inter" }
+        font.weight: Font.Medium
         color: root.primary ? "#FFFFFF" : "#ABABAB"
     }
 

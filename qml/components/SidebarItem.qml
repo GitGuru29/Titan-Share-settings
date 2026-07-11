@@ -59,11 +59,9 @@ Item {
 
         Text {
             text: root.label
-            font {
-                pixelSize: 13
+            font { pixelSize: 13
                 weight: root.active ? Font.Medium : Font.Normal
-                family: "Inter"
-            }
+                family: "Inter" }
             color: root.active ? root.textActive : root.textNormal
             Behavior on color { ColorAnimation { duration: 120 } }
             Layout.fillWidth: true

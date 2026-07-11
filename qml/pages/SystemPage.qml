@@ -45,7 +45,9 @@ ScrollView {
 
                         Text {
                             text: modelData.label
-                            font { pixelSize: 10; weight: Font.SemiBold; family: "Inter"; letterSpacing: 1.2 }
+                            font { pixelSize: 10; family: "Inter" }
+                            font.weight: Font.SemiBold
+                            font.letterSpacing: 1.2
                             color: root.textLow
                         }
 
@@ -55,7 +57,8 @@ ScrollView {
                                     return modelData.value.toFixed(1) + modelData.suffix
                                 return modelData.value + modelData.suffix
                             }
-                            font { pixelSize: 26; weight: Font.Bold; family: "Inter" }
+                            font { pixelSize: 26; family: "Inter" }
+                            font.weight: Font.Bold
                             color: barColor
                         }
 
@@ -104,12 +107,15 @@ ScrollView {
                         spacing: 4
                         Text {
                             text: modelData.label.toUpperCase()
-                            font { pixelSize: 9; weight: Font.SemiBold; family: "Inter"; letterSpacing: 1.2 }
+                            font { pixelSize: 9; family: "Inter" }
+                            font.weight: Font.SemiBold
+                            font.letterSpacing: 1.2
                             color: root.textLow
                         }
                         Text {
                             text: modelData.value
-                            font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.Medium
                             color: root.textHigh; elide: Text.ElideRight
                             maximumLineCount: 1; width: 260
                         }
@@ -133,10 +139,11 @@ ScrollView {
                     Layout.fillWidth: true; spacing: 0
                     RowLayout {
                         Layout.fillWidth: true; height: 46; spacing: 12
-                        Rectangle { width: 7; height: 7; radius: 4; color: root.green; anchors.verticalCenter: parent.verticalCenter }
+                        Rectangle { width: 7; height: 7; radius: 4; color: root.green; Layout.alignment: Qt.AlignVCenter }
                         Text {
                             text: modelData
-                            font { pixelSize: 13; family: "Inter"; weight: Font.Medium }
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.Medium
                             color: root.textHigh; Layout.fillWidth: true
                         }
                         StatusBadge { text: "Running"; statusColor: root.green }

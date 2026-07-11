@@ -1,6 +1,9 @@
 #include "settingsbackend.h"
 #include <QProcess>
 #include <QDebug>
+#include <QDir>
+#include <QFile>
+#include <QTextStream>
 
 SettingsBackend::SettingsBackend(QObject *parent)
     : QObject(parent)
@@ -27,6 +30,7 @@ void SettingsBackend::loadSettings() {
 }
 
 void SettingsBackend::applyAndSave() {
+    // 1. Persist to QSettings
     m_settings.setValue("appearance/colorTheme",   m_colorTheme);
     m_settings.setValue("appearance/accentColor",  m_accentColor);
     m_settings.setValue("appearance/glassmorphism",m_glassmorphism);
@@ -41,12 +45,61 @@ void SettingsBackend::applyAndSave() {
     m_settings.setValue("security/autolockDelay",  m_autolockDelay);
     m_settings.sync();
 
-    // Apply power profile via powerprofilesctl if available
-    if (m_powerProfile != "Custom") {
-        QString prof = m_powerProfile.toLower().replace(" ", "-");
-        QProcess::startDetached("powerprofilesctl", {"set", prof});
+    // 2. Apply accent color to Hyprland (border colors)
+    // Strip '#' and convert to 0xRRGGBB format Hyprland expects
+    QString hex = m_accentColor;
+    hex.remove('#');
+    QString hyprColor = "0xff" + hex;
+    QProcess::startDetached("hyprctl", {"keyword", "general:col.active_border", hyprColor + " 0xff444444 45deg"});
+    QProcess::startDetached("hyprctl", {"keyword", "general:col.inactive_border", "0xff333333"});
+
+    // 3. Apply icon theme via gsettings (GTK apps pick this up)
+    QProcess::startDetached("gsettings", {"set", "org.gnome.desktop.interface", "icon-theme", m_iconTheme});
+
+    // 4. Apply font family + size via gsettings
+    QString fontSpec = m_fontFamily + " " + QString::number(m_fontSize);
+    QProcess::startDetached("gsettings", {"set", "org.gnome.desktop.interface", "font-name", fontSpec});
+    QProcess::startDetached("gsettings", {"set", "org.gnome.desktop.interface", "document-font-name", fontSpec});
+    QProcess::startDetached("gsettings", {"set", "org.gnome.desktop.interface", "monospace-font-name",
+                                          m_fontFamily + " " + QString::number(m_fontSize)});
+
+    // 5. Apply screen timeout via Hyprland DPMS
+    QProcess::startDetached("bash", {"-c",
+        "hyprctl keyword monitor ,preferred,auto,auto,vrr,0 2>/dev/null; "
+        "hyprctl keyword decoration:screen_shader '' 2>/dev/null"
+    });
+    // Write swayidle config for screen-off + suspend
+    QString swayidleConfig = QString(
+        "timeout %1 'hyprctl dispatch dpmsoff' resume 'hyprctl dispatch dpmson'\n"
+        "timeout %2 'systemctl suspend'\n"
+        "before-sleep 'swaylock -f'\n"
+    ).arg(m_screenTimeout).arg(m_suspendTimeout);
+
+    QFile idleConf(QDir::homePath() + "/.config/swayidle/config");
+    if (idleConf.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream(&idleConf) << swayidleConfig;
+        idleConf.close();
+    }
+    // Restart swayidle to pick up new config
+    QProcess::startDetached("bash", {"-c", "pkill swayidle; swayidle -w &"});
+
+    // 6. Apply autolock (swaylock timeout via swayidle — already handled above)
+    //    If disabled, kill swayidle
+    if (!m_autolockEnabled) {
+        QProcess::startDetached("pkill", {"swayidle"});
     }
 
+    // 7. Power profile
+    if (m_powerProfile != "Custom") {
+        QString prof = m_powerProfile.toLower().replace(" ", "-");
+        // Try powerprofilesctl first, fall back to cpupower
+        QProcess::startDetached("bash", {"-c",
+            "powerprofilesctl set " + prof +
+            " 2>/dev/null || cpupower frequency-set -g " + prof + " 2>/dev/null"
+        });
+    }
+
+    qDebug() << "[SettingsBackend] Applied:" << m_colorTheme << m_accentColor << m_iconTheme << fontSpec;
     emit settingsSaved();
 }
 

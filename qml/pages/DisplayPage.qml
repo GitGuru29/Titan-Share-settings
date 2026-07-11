@@ -54,7 +54,8 @@ ScrollView {
 
                 Text {
                     text: DisplayManager.brightness + "%"
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: root.accent; Layout.preferredWidth: 40
                     horizontalAlignment: Text.AlignRight
                 }
@@ -75,7 +76,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Night Light"
-                        font { pixelSize: 13; weight: Font.SemiBold; family: "Inter" }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.SemiBold
                         color: root.textHigh
                     }
                     Text {
@@ -102,7 +104,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Color Temperature"
-                        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textHigh
                         opacity: DisplayManager.nightLightEnabled ? 1.0 : 0.35
                         Behavior on opacity { NumberAnimation { duration: 180 } }
@@ -160,12 +163,15 @@ ScrollView {
                             spacing: 5
                             Text {
                                 text: modelData.label.toUpperCase()
-                                font { pixelSize: 9; weight: Font.SemiBold; family: "Inter"; letterSpacing: 1.2 }
+                                font { pixelSize: 9; family: "Inter" }
+                                font.weight: Font.SemiBold
+                                font.letterSpacing: 1.2
                                 color: root.textLow
                             }
                             Text {
                                 text: modelData.value
-                                font { pixelSize: 20; weight: Font.Bold; family: "Inter" }
+                                font { pixelSize: 20; family: "Inter" }
+                                font.weight: Font.Bold
                                 color: root.textHigh
                             }
                         }
@@ -181,7 +187,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Display Scale"
-                        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textHigh
                     }
                     Text {
@@ -198,7 +205,8 @@ ScrollView {
                 }
                 Text {
                     text: DisplayManager.scaleFactor.toFixed(2) + "×"
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: root.accent; Layout.preferredWidth: 48
                     horizontalAlignment: Text.AlignRight
                 }

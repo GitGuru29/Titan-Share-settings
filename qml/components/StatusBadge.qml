@@ -25,7 +25,8 @@ Rectangle {
         Text {
             id: lbl
             text: parent.parent.text
-            font { pixelSize: 11; family: "Inter"; weight: Font.Medium }
+            font { pixelSize: 11; family: "Inter" }
+            font.weight: Font.Medium
             color: parent.parent.statusColor
             anchors.verticalCenter: parent.verticalCenter
         }

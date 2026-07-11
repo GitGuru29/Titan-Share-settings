@@ -43,7 +43,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Screen Autolock"
-                        font { pixelSize: 13; weight: Font.SemiBold; family: "Inter" }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.SemiBold
                         color: root.textHigh
                     }
                     Text {
@@ -64,7 +65,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Lock After"
-                        font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textHigh
                         opacity: SettingsBackend.autolockEnabled ? 1.0 : 0.35
                     }
@@ -84,7 +86,8 @@ ScrollView {
                 }
                 Text {
                     text: Math.floor(SettingsBackend.autolockDelay / 60) + " m"
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: root.accent; Layout.preferredWidth: 40; horizontalAlignment: Text.AlignRight
                     opacity: SettingsBackend.autolockEnabled ? 1.0 : 0.35
                 }
@@ -108,12 +111,13 @@ ScrollView {
                     Layout.fillWidth: true; spacing: 0
                     RowLayout {
                         Layout.fillWidth: true; height: 52; spacing: 12
-                        Rectangle { width: 8; height: 8; radius: 4; color: modelData.enabled ? root.green : root.red; anchors.verticalCenter: parent.verticalCenter }
+                        Rectangle { width: 8; height: 8; radius: 4; color: modelData.enabled ? root.green : root.red; Layout.alignment: Qt.AlignVCenter }
                         Column {
                             spacing: 3
                             Text {
                                 text: modelData.label
-                                font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                                font { pixelSize: 13; family: "Inter" }
+                                font.weight: Font.Medium
                                 color: root.textHigh
                             }
                             Text {
@@ -149,7 +153,8 @@ ScrollView {
                             Text { text: modelData.icon; font.pixelSize: 16; anchors.verticalCenter: parent.verticalCenter }
                             Text {
                                 text: modelData.text
-                                font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                                font { pixelSize: 12; family: "Inter" }
+                                font.weight: Font.Medium
                                 color: root.textHigh
                                 anchors.verticalCenter: parent.verticalCenter
                             }
@@ -173,7 +178,8 @@ ScrollView {
                     spacing: 4
                     Text {
                         text: "Active Containers"
-                        font { pixelSize: 13; weight: Font.SemiBold; family: "Inter" }
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.SemiBold
                         color: root.textHigh
                     }
                     Text {
@@ -199,10 +205,11 @@ ScrollView {
                     Layout.fillWidth: true; spacing: 0
                     RowLayout {
                         Layout.fillWidth: true; height: 42; spacing: 12
-                        Rectangle { width: 7; height: 7; radius: 4; color: root.green; anchors.verticalCenter: parent.verticalCenter }
+                        Rectangle { width: 7; height: 7; radius: 4; color: root.green; Layout.alignment: Qt.AlignVCenter }
                         Text {
                             text: modelData
-                            font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                            font { pixelSize: 12; family: "Inter" }
+                            font.weight: Font.Medium
                             color: root.textHigh; Layout.fillWidth: true
                         }
                         StatusBadge { text: "Running"; statusColor: root.green }

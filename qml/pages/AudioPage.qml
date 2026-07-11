@@ -41,7 +41,8 @@ ScrollView {
                     Text {
                         anchors.centerIn: parent
                         text: AudioBackend.masterMuted ? "✕" : (AudioBackend.masterVolume > 60 ? "▮▮▮" : "▮▮")
-                        font { pixelSize: AudioBackend.masterMuted ? 14 : 10; weight: Font.Bold; family: "Inter" }
+                        font { pixelSize: AudioBackend.masterMuted ? 14 : 10; family: "Inter" }
+                        font.weight: Font.Bold
                         color: AudioBackend.masterMuted ? root.red : root.textMid
                     }
 
@@ -68,7 +69,8 @@ ScrollView {
 
                 Text {
                     text: AudioBackend.masterMuted ? "Muted" : (AudioBackend.masterVolume + "%")
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: AudioBackend.masterMuted ? root.red : root.accent
                     Layout.preferredWidth: 48
                     horizontalAlignment: Text.AlignRight
@@ -87,7 +89,8 @@ ScrollView {
                 Item { Layout.fillWidth: true }
                 Text {
                     text: AudioBackend.activeOutput
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: root.textHigh; elide: Text.ElideRight
                     Layout.maximumWidth: 280
                 }
@@ -116,7 +119,8 @@ ScrollView {
                     Text {
                         anchors.centerIn: parent
                         text: "MIC"
-                        font { pixelSize: 9; weight: Font.Bold; family: "Inter" }
+                        font { pixelSize: 9; family: "Inter" }
+                        font.weight: Font.Bold
                         color: AudioBackend.micMuted ? root.red : root.textMid
                     }
 
@@ -139,7 +143,8 @@ ScrollView {
 
                 Text {
                     text: AudioBackend.micMuted ? "Muted" : (AudioBackend.micVolume + "%")
-                    font { pixelSize: 12; family: "Inter"; weight: Font.Medium }
+                    font { pixelSize: 12; family: "Inter" }
+                    font.weight: Font.Medium
                     color: AudioBackend.micMuted ? root.red : root.purple
                     Layout.preferredWidth: 48
                     horizontalAlignment: Text.AlignRight

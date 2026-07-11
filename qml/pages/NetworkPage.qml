@@ -38,7 +38,8 @@ ScrollView {
                     Text {
                         anchors.centerIn: parent
                         text: NetworkManager.isConnected ? "↑↓" : "✗"
-                        font { pixelSize: 16; weight: Font.Bold; family: "Inter" }
+                        font { pixelSize: 16; family: "Inter" }
+                        font.weight: Font.Bold
                         color: NetworkManager.isConnected ? root.green : root.red
                     }
                 }
@@ -49,7 +50,8 @@ ScrollView {
                         spacing: 10
                         Text {
                             text: "Wi-Fi"
-                            font { pixelSize: 16; weight: Font.SemiBold; family: "Inter" }
+                            font { pixelSize: 16; family: "Inter" }
+                            font.weight: Font.SemiBold
                             color: root.textHigh
                         }
                         StatusBadge {
@@ -102,7 +104,8 @@ ScrollView {
                     }
                     Text {
                         text: NetworkManager.signalStrength + "%"
-                        font { pixelSize: 11; family: "Inter"; weight: Font.Medium }
+                        font { pixelSize: 11; family: "Inter" }
+                        font.weight: Font.Medium
                         color: root.textMid
                         anchors.verticalCenter: parent.verticalCenter
                     }
@@ -155,7 +158,8 @@ ScrollView {
                         Text {
                             visible: NetworkManager.connectedSsid === modelData
                             text: "Connected"
-                            font { pixelSize: 11; family: "Inter"; weight: Font.Medium }
+                            font { pixelSize: 11; family: "Inter" }
+                            font.weight: Font.Medium
                             color: root.green
                         }
                     }
@@ -201,12 +205,15 @@ ScrollView {
                         spacing: 4
                         Text {
                             text: modelData.label.toUpperCase()
-                            font { pixelSize: 9; weight: Font.SemiBold; family: "Inter"; letterSpacing: 1.2 }
+                            font { pixelSize: 9; family: "Inter" }
+                            font.weight: Font.SemiBold
+                            font.letterSpacing: 1.2
                             color: root.textLow
                         }
                         Text {
                             text: modelData.value
-                            font { pixelSize: 13; weight: Font.Medium; family: "Inter" }
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.Medium
                             color: root.textHigh
                             elide: Text.ElideRight
                             maximumLineCount: 1
