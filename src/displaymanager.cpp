@@ -3,6 +3,7 @@
 #include <QFile>
 #include <QDir>
 #include <QTextStream>
+#include <QTimer>
 
 DisplayManager::DisplayManager(QObject *parent) : QObject(parent) {
     // Read initial brightness
@@ -26,6 +27,24 @@ DisplayManager::DisplayManager(QObject *parent) : QObject(parent) {
     rf.waitForFinished(1000);
     m_refreshRate = rf.readAllStandardOutput().trimmed().toDouble();
     if (m_refreshRate < 1.0) m_refreshRate = 60.0;
+
+    // Read the *current* Hyprland scale so our slider initialises to the real value
+    // and doesn't overwrite it on startup.
+    QProcess sf;
+    sf.start("bash", {"-c",
+        "hyprctl monitors -j 2>/dev/null | python3 -c "
+        "\"import sys,json; m=json.load(sys.stdin)[0]; print(m['scale'])\" 2>/dev/null || echo '1'"
+    });
+    sf.waitForFinished(1000);
+    QString scaleStr = sf.readAllStandardOutput().trimmed();
+    if (!scaleStr.isEmpty()) {
+        double s = scaleStr.toDouble();
+        if (s >= 0.5 && s <= 3.0) m_scaleFactor = s;
+    }
+
+    // Defer the initialized flag so QML bindings during the first frame
+    // don't trigger live hyprctl / system calls.
+    QTimer::singleShot(0, this, [this]{ m_initialized = true; });
 }
 
 QString DisplayManager::findBacklightPath() const {
@@ -77,7 +96,10 @@ double DisplayManager::scaleFactor() const { return m_scaleFactor; }
 void DisplayManager::setScaleFactor(double v) {
     if (qFuzzyCompare(m_scaleFactor, v)) return;
     m_scaleFactor = v;
-    // Apply via hyprctl
-    QProcess::startDetached("bash", {"-c", QString("hyprctl keyword monitor ,preferred,auto,%1").arg(v)});
+    // Only apply via hyprctl when user explicitly changes the value,
+    // not during the initial QML binding on startup.
+    if (m_initialized) {
+        QProcess::startDetached("bash", {"-c", QString("hyprctl keyword monitor ,preferred,auto,%1").arg(v)});
+    }
     emit scaleFactorChanged();
 }

@@ -14,7 +14,7 @@ ScrollView {
     property color accent:   "#4C8BF5"
 
     ColumnLayout {
-        width: root.width
+        width: root.availableWidth
         spacing: 0
 
         Item { height: 28 }
@@ -39,7 +39,7 @@ ScrollView {
                     Layout.fillWidth: true
                     from: 0; to: 100; stepSize: 1
                     value: DisplayManager.brightness
-                    onValueChanged: DisplayManager.brightness = value
+                    onMoved: DisplayManager.brightness = value
                     fillColor: {
                         var t = DisplayManager.brightness / 100
                         return Qt.rgba(0.9, 0.7 * t + 0.3, 0.2, 1.0)
@@ -124,7 +124,7 @@ ScrollView {
                     width: 180
                     from: 1000; to: 6500; stepSize: 100
                     value: DisplayManager.nightLightTemp
-                    onValueChanged: DisplayManager.nightLightTemp = value
+                    onMoved: DisplayManager.nightLightTemp = value
                     enabled: DisplayManager.nightLightEnabled
                     opacity: DisplayManager.nightLightEnabled ? 1.0 : 0.35
                     Behavior on opacity { NumberAnimation { duration: 180 } }
@@ -201,7 +201,7 @@ ScrollView {
                 TitanSlider {
                     width: 160; from: 0.5; to: 3.0; stepSize: 0.25
                     value: DisplayManager.scaleFactor
-                    onValueChanged: DisplayManager.scaleFactor = value
+                    onMoved: DisplayManager.scaleFactor = value
                 }
                 Text {
                     text: DisplayManager.scaleFactor.toFixed(2) + "×"

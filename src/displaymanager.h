@@ -40,6 +40,7 @@ private:
     QString m_resolution;
     double m_refreshRate = 60.0;
     double m_scaleFactor = 1.0;
+    bool m_initialized = false;  // guards against startup-binding side-effects
 
     QString findBacklightPath() const;
     int maxBrightness() const;

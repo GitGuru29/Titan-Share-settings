@@ -16,7 +16,7 @@ ScrollView {
     property color purple:   "#7C6FCD"
 
     ColumnLayout {
-        width: root.width
+        width: root.availableWidth
         spacing: 0
 
         Item { height: 28 }

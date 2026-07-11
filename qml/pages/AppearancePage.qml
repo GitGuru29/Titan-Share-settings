@@ -21,7 +21,7 @@ ScrollView {
     ]
 
     ColumnLayout {
-        width: root.width
+        width: root.availableWidth
         spacing: 0
 
         Item { height: 28 }
@@ -90,7 +90,8 @@ ScrollView {
                         Text {
                             text: modelData.name
                             anchors.horizontalCenter: parent.horizontalCenter
-                            font { pixelSize: 11; family: "Inter"; weight: SettingsBackend.colorTheme === modelData.name ? Font.Medium : Font.Normal }
+                            font { pixelSize: 11; family: "Inter" }
+                            font.weight: SettingsBackend.colorTheme === modelData.name ? Font.Medium : Font.Normal
                             color: SettingsBackend.colorTheme === modelData.name ? root.textHigh : root.textMid
                         }
                     }
@@ -246,7 +247,8 @@ ScrollView {
                         Text {
                             anchors.centerIn: parent
                             text: modelData
-                            font { pixelSize: 12; family: "Inter"; weight: SettingsBackend.iconTheme === modelData ? Font.Medium : Font.Normal }
+                            font { pixelSize: 12; family: "Inter" }
+                            font.weight: SettingsBackend.iconTheme === modelData ? Font.Medium : Font.Normal
                             color: SettingsBackend.iconTheme === modelData ? root.textHigh : root.textMid
                         }
 
