@@ -36,18 +36,13 @@ ScrollView {
                     Layout.fillWidth: true; height: 120; radius: 10
                     color: "#141414"; border.width: 1; border.color: "#222222"
 
-                    property real val: {
-                        if (modelData.label === "CPU") return SystemInfo.cpuUsage;
-                        if (modelData.label === "RAM") return SystemInfo.usedRam;
-                        if (modelData.label === "DISK") return SystemInfo.diskUsedGb;
-                        return 0;
-                    }
-                    property real maxVal: {
-                        if (modelData.label === "CPU") return 100;
-                        if (modelData.label === "RAM") return SystemInfo.totalRam;
-                        if (modelData.label === "DISK") return SystemInfo.diskTotalGb;
-                        return 1;
-                    }
+                    property real val: modelData.label === "CPU" ? SystemInfo.cpuUsage :
+                                       modelData.label === "RAM" ? SystemInfo.usedRam :
+                                       modelData.label === "DISK" ? SystemInfo.diskUsedGb : 0
+                                       
+                    property real maxVal: modelData.label === "CPU" ? 100 :
+                                          modelData.label === "RAM" ? SystemInfo.totalRam :
+                                          modelData.label === "DISK" ? SystemInfo.diskTotalGb : 1
                     property real pct: maxVal > 0 ? val / maxVal : 0
                     property color barColor: pct > 0.8 ? root.red : pct > 0.5 ? root.orange : root.accent
 
@@ -85,10 +80,10 @@ ScrollView {
                         }
 
                         Text {
-                            text: "of " + (modelData.label === "DISK" ? modelData.max.toFixed(1) : modelData.max) + modelData.suffix
+                            text: "of " + (modelData.label === "DISK" ? maxVal.toFixed(1) : maxVal) + modelData.suffix
                             font { pixelSize: 10; family: "Inter" }
                             color: root.textLow
-                            visible: modelData.max > 0 && modelData.label !== "CPU"
+                            visible: maxVal > 0 && modelData.label !== "CPU"
                         }
                     }
                 }

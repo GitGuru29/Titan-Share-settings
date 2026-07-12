@@ -60,14 +60,13 @@ QString SystemInfo::osVersion() const {
 
 void SystemInfo::initCpuModel() {
     QFile f("/proc/cpuinfo");
-    if (f.open(QIODevice::ReadOnly)) {
+    if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream ts(&f);
         while (!ts.atEnd()) {
             QString line = ts.readLine();
-            if (line.contains("model name", Qt::CaseInsensitive)) {
+            if (line.startsWith("model name") || line.startsWith("Model name")) {
                 m_cpuModel = line.section(':', 1).trimmed();
-                // Shorten verbose Intel/AMD strings
-                m_cpuModel.replace(QRegularExpression("\\s{2,}"), " ");
+                while (m_cpuModel.contains("  ")) m_cpuModel.replace("  ", " ");
                 return;
             }
         }
@@ -89,15 +88,22 @@ void SystemInfo::initCpuModel() {
 
 void SystemInfo::initTotalRam() {
     QFile f("/proc/meminfo");
-    if (f.open(QIODevice::ReadOnly)) {
+    if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
         QTextStream ts(&f);
         while (!ts.atEnd()) {
             QString line = ts.readLine();
             if (line.startsWith("MemTotal:")) {
-                m_totalRam = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).value(1).toLongLong() / 1024;
-                return;
+                QString val = line.mid(9).trimmed(); // "16148448 kB"
+                m_totalRam = val.section(' ', 0, 0).toLongLong() / 1024;
+                break;
             }
         }
+    }
+    if (m_totalRam == 0) {
+        QProcess p;
+        p.start("bash", {"-c", "free -m | awk '/^Mem:/{print $2}'"});
+        p.waitForFinished(1000);
+        m_totalRam = p.readAllStandardOutput().trimmed().toInt();
     }
 }
 
@@ -108,7 +114,13 @@ void SystemInfo::initDiskTotal() {
 }
 
 QString SystemInfo::cpuModel() const {
-    return m_cpuModel.isEmpty() ? QStringLiteral("Unknown CPU") : m_cpuModel;
+    if (!m_cpuModel.isEmpty() && m_cpuModel != "Unknown CPU") return m_cpuModel;
+    QProcess p;
+    p.start("bash", {"-c", "lscpu 2>/dev/null | grep 'Model name:' | sed 's/.*: *//'"});
+    p.waitForFinished(1000);
+    m_cpuModel = p.readAllStandardOutput().trimmed();
+    if (m_cpuModel.isEmpty()) m_cpuModel = "Unknown CPU";
+    return m_cpuModel;
 }
 
 QString SystemInfo::gpuModel() const {
@@ -175,17 +187,29 @@ void SystemInfo::readCpuUsage() {
 
 void SystemInfo::readMemory() {
     QFile f("/proc/meminfo");
-    if (!f.open(QIODevice::ReadOnly)) return;
-    QTextStream ts(&f);
     long long total = 0, avail = 0;
-    while (!ts.atEnd()) {
-        QString line = ts.readLine();
-        if (line.startsWith("MemTotal:"))
-            total = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).value(1).toLongLong();
-        else if (line.startsWith("MemAvailable:"))
-            avail = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).value(1).toLongLong();
+    if (f.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream ts(&f);
+        while (!ts.atEnd()) {
+            QString line = ts.readLine();
+            if (line.startsWith("MemTotal:")) {
+                total = line.mid(9).trimmed().section(' ', 0, 0).toLongLong();
+            } else if (line.startsWith("MemAvailable:")) {
+                avail = line.mid(13).trimmed().section(' ', 0, 0).toLongLong();
+            }
+        }
     }
-    int used = (int)((total - avail) / 1024);
+    
+    int used = 0;
+    if (total == 0) {
+        QProcess p;
+        p.start("bash", {"-c", "free -m | awk '/^Mem:/{print $3}'"});
+        p.waitForFinished(1000);
+        used = p.readAllStandardOutput().trimmed().toInt();
+    } else {
+        used = (int)((total - avail) / 1024);
+    }
+    
     if (m_usedRam != used) {
         m_usedRam = used;
         emit usedRamChanged();
