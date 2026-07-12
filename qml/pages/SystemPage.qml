@@ -28,15 +28,27 @@ ScrollView {
 
             Repeater {
                 model: [
-                    { label: "CPU",  value: SystemInfo.cpuUsage,   max: 100,                suffix: "%",   colorFn: 1 },
-                    { label: "RAM",  value: SystemInfo.usedRam,    max: SystemInfo.totalRam, suffix: " MB", colorFn: 2 },
-                    { label: "DISK", value: SystemInfo.diskUsedGb, max: SystemInfo.diskTotalGb, suffix: " GB", colorFn: 3 }
+                    { label: "CPU",  suffix: "%",   colorFn: 1 },
+                    { label: "RAM",  suffix: " MB", colorFn: 2 },
+                    { label: "DISK", suffix: " GB", colorFn: 3 }
                 ]
                 delegate: Rectangle {
                     Layout.fillWidth: true; height: 120; radius: 10
                     color: "#141414"; border.width: 1; border.color: "#222222"
 
-                    property real pct: modelData.max > 0 ? modelData.value / modelData.max : 0
+                    property real val: {
+                        if (modelData.label === "CPU") return SystemInfo.cpuUsage;
+                        if (modelData.label === "RAM") return SystemInfo.usedRam;
+                        if (modelData.label === "DISK") return SystemInfo.diskUsedGb;
+                        return 0;
+                    }
+                    property real maxVal: {
+                        if (modelData.label === "CPU") return 100;
+                        if (modelData.label === "RAM") return SystemInfo.totalRam;
+                        if (modelData.label === "DISK") return SystemInfo.diskTotalGb;
+                        return 1;
+                    }
+                    property real pct: maxVal > 0 ? val / maxVal : 0
                     property color barColor: pct > 0.8 ? root.red : pct > 0.5 ? root.orange : root.accent
 
                     Column {
@@ -54,8 +66,8 @@ ScrollView {
                         Text {
                             text: {
                                 if (modelData.label === "CPU" || modelData.label === "DISK")
-                                    return modelData.value.toFixed(1) + modelData.suffix
-                                return modelData.value + modelData.suffix
+                                    return val.toFixed(1) + modelData.suffix
+                                return val + modelData.suffix
                             }
                             font { pixelSize: 26; family: "Inter" }
                             font.weight: Font.Bold
@@ -96,12 +108,12 @@ ScrollView {
 
                 Repeater {
                     model: [
-                        { label: "Hostname", value: SystemInfo.hostname      },
-                        { label: "Kernel",   value: SystemInfo.kernelVersion },
-                        { label: "CPU",      value: SystemInfo.cpuModel      },
-                        { label: "GPU",      value: SystemInfo.gpuModel      },
-                        { label: "Uptime",   value: SystemInfo.uptime        },
-                        { label: "OS",       value: SystemInfo.osVersion     }
+                        { label: "Hostname" },
+                        { label: "Kernel"   },
+                        { label: "CPU"      },
+                        { label: "GPU"      },
+                        { label: "Uptime"   },
+                        { label: "OS"       }
                     ]
                     delegate: Column {
                         spacing: 4
@@ -113,7 +125,15 @@ ScrollView {
                             color: root.textLow
                         }
                         Text {
-                            text: modelData.value
+                            text: {
+                                if (modelData.label === "Hostname") return SystemInfo.hostname;
+                                if (modelData.label === "Kernel") return SystemInfo.kernelVersion;
+                                if (modelData.label === "CPU") return SystemInfo.cpuModel;
+                                if (modelData.label === "GPU") return SystemInfo.gpuModel;
+                                if (modelData.label === "Uptime") return SystemInfo.uptime;
+                                if (modelData.label === "OS") return SystemInfo.osVersion;
+                                return "";
+                            }
                             font { pixelSize: 13; family: "Inter" }
                             font.weight: Font.Medium
                             color: root.textHigh; elide: Text.ElideRight

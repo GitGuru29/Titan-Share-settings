@@ -64,7 +64,7 @@ void SystemInfo::initCpuModel() {
         QTextStream ts(&f);
         while (!ts.atEnd()) {
             QString line = ts.readLine();
-            if (line.startsWith("model name")) {
+            if (line.contains("model name", Qt::CaseInsensitive)) {
                 m_cpuModel = line.section(':', 1).trimmed();
                 // Shorten verbose Intel/AMD strings
                 m_cpuModel.replace(QRegularExpression("\\s{2,}"), " ");
@@ -181,9 +181,9 @@ void SystemInfo::readMemory() {
     while (!ts.atEnd()) {
         QString line = ts.readLine();
         if (line.startsWith("MemTotal:"))
-            total = line.split(QRegularExpression("\\s+"))[1].toLongLong();
+            total = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).value(1).toLongLong();
         else if (line.startsWith("MemAvailable:"))
-            avail = line.split(QRegularExpression("\\s+"))[1].toLongLong();
+            avail = line.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts).value(1).toLongLong();
     }
     int used = (int)((total - avail) / 1024);
     if (m_usedRam != used) {
