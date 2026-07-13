@@ -32,7 +32,7 @@ ScrollView {
                 Image {
                     anchors.centerIn: parent
                     width: 48; height: 48
-                    source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.jpeg"
+                    source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.png"
                     fillMode: Image.PreserveAspectFit; smooth: true
                 }
             }
