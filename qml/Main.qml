@@ -127,7 +127,7 @@ ApplicationWindow {
                                 Image {
                                     anchors.centerIn: parent
                                     width: 18; height: 18
-                                    source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.svg"
+                                    source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.jpeg"
                                     fillMode: Image.PreserveAspectFit
                                     smooth: true
                                 }

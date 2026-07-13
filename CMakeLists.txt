@@ -60,7 +60,7 @@ qt_add_qml_module(archtitan-settings
         assets/icons/security.svg
         assets/icons/power.svg
         assets/icons/about.svg
-        assets/icons/archtitan-logo.svg
+        assets/icons/archtitan-logo.jpeg
 )
 
 target_link_libraries(archtitan-settings PRIVATE
