@@ -21,44 +21,17 @@ ScrollView {
         // ── Hero ─────────────────────────────────────────────────
         Item {
             Layout.alignment: Qt.AlignHCenter
-            Layout.fillWidth: true; height: 100
+            Layout.fillWidth: true; height: 160
 
-            Rectangle {
+            Image {
                 anchors.centerIn: parent
-                width: 80; height: 80; radius: 20
-                color: "#1A2030"
-                border.width: 1; border.color: "#2A3A5A"
-
-                Image {
-                    anchors.centerIn: parent
-                    width: 48; height: 48
-                    source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.png"
-                    fillMode: Image.PreserveAspectFit; smooth: true
-                }
+                width: 250; height: 150
+                source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.png"
+                fillMode: Image.PreserveAspectFit; smooth: true
             }
         }
 
         Item { height: 16 }
-
-        Column {
-            Layout.alignment: Qt.AlignHCenter
-            spacing: 8
-
-            Text {
-                text: "ArchTitan OS"
-                anchors.horizontalCenter: parent.horizontalCenter
-                font { pixelSize: 28; family: "Inter" }
-                font.weight: Font.Bold
-                color: root.textHigh
-            }
-
-            Text {
-                text: "Precision · Performance · Privacy"
-                anchors.horizontalCenter: parent.horizontalCenter
-                font { pixelSize: 12; family: "Inter"; italic: true }
-                color: root.textMid
-            }
-        }
 
         Item { height: 32 }
 

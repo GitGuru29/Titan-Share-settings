@@ -108,45 +108,18 @@ ApplicationWindow {
                     // ── Logo ──────────────────────────────────────
                     Item {
                         Layout.fillWidth: true
-                        height: 72
+                        height: 90
 
-                        RowLayout {
+                        Image {
                             anchors {
-                                left: parent.left; leftMargin: 20
+                                left: parent.left; leftMargin: 10
+                                right: parent.right; rightMargin: 10
                                 verticalCenter: parent.verticalCenter
                             }
-                            spacing: 12
-
-                            // Logo mark
-                            Rectangle {
-                                width: 32; height: 32; radius: 8
-                                color: root.accentDim
-                                border.width: 1
-                                border.color: root.accent
-
-                                Image {
-                                    anchors.centerIn: parent
-                                    width: 18; height: 18
-                                    source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.png"
-                                    fillMode: Image.PreserveAspectFit
-                                    smooth: true
-                                }
-                            }
-
-                            Column {
-                                spacing: 2
-                                Text {
-                                    text: "ArchTitan"
-                                    font { pixelSize: 14; family: "Inter" }
-                                    font.weight: Font.DemiBold
-                                    color: root.textHigh
-                                }
-                                Text {
-                                    text: "Settings"
-                                    font { pixelSize: 11; family: "Inter" }
-                                    color: root.textLow
-                                }
-                            }
+                            height: 70
+                            source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.png"
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
                         }
                     }
 
