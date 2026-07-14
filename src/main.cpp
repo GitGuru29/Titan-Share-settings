@@ -5,6 +5,7 @@
 #include <QFontDatabase>
 #include <QIcon>
 #include <QFile>
+#include <QSurfaceFormat>
 
 #include "settingsbackend.h"
 #include "systeminfo.h"
@@ -14,6 +15,11 @@
 #include "wallpapermanager.h"
 
 int main(int argc, char *argv[]) {
+    // ── Enable Wayland Alpha/Transparency ────────────────────────
+    QSurfaceFormat format;
+    format.setAlphaBufferSize(8);
+    QSurfaceFormat::setDefaultFormat(format);
+
     QGuiApplication app(argc, argv);
 
     app.setApplicationName("ArchTitan Settings");

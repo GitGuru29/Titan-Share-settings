@@ -17,8 +17,8 @@ ApplicationWindow {
 
     // ── Design tokens ──────────────────────────────────────────────
     readonly property color bg0:          "#0D0D0D"   // deepest bg
-    readonly property color bg1:          "#111111"   // window bg
-    readonly property color bg2:          "#171717"   // sidebar bg
+    readonly property color bg1:          "#B3111111" // window bg (translucent for glassmorphism)
+    readonly property color bg2:          "#99171717" // sidebar bg (more translucent)
     readonly property color bg3:          "#1C1C1C"   // card/row bg
     readonly property color bg4:          "#242424"   // hover bg
     readonly property color border0:      "#2A2A2A"   // strong border
