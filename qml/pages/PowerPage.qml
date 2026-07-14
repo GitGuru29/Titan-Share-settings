@@ -35,19 +35,22 @@ ScrollView {
                         name: "Power Saver",
                         desc: "Maximize battery life",
                         accent: "#4CAF82",
-                        icon: "qrc:/ArchTitanSettings/assets/icons/eco.svg"
+                        icon: "qrc:/ArchTitanSettings/assets/icons/eco.png",
+                        colorize: false
                     },
                     { 
                         name: "Balanced",
                         desc: "Smart performance",
                         accent: "#4C8BF5",
-                        icon: "qrc:/ArchTitanSettings/assets/icons/sliders.svg"
+                        icon: "qrc:/ArchTitanSettings/assets/icons/sliders.png",
+                        colorize: false
                     },
                     { 
                         name: "Performance",
                         desc: "Max CPU performance",
                         accent: "#D4853A",
-                        icon: "qrc:/ArchTitanSettings/assets/icons/zap.svg"
+                        icon: "qrc:/ArchTitanSettings/assets/icons/zap.svg",
+                        colorize: true
                     }
                 ]
                 delegate: Rectangle {
@@ -74,18 +77,21 @@ ScrollView {
                             Image {
                                 id: profileIcon
                                 anchors.centerIn: parent
-                                width: 22; height: 22
+                                width: modelData.colorize ? 24 : 32
+                                height: modelData.colorize ? 24 : 32
+                                sourceSize: modelData.colorize ? Qt.size(24, 24) : undefined
                                 source: modelData.icon
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
-                                mipmap: true
-                                visible: false
+                                mipmap: !modelData.colorize
+                                visible: !modelData.colorize
                             }
                             MultiEffect {
                                 anchors.fill: profileIcon
                                 source: profileIcon
                                 colorization: 1.0
                                 colorizationColor: modelData.accent
+                                visible: modelData.colorize
                             }
                         }
 

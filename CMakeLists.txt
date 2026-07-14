@@ -61,8 +61,8 @@ qt_add_qml_module(archtitan-settings
         assets/icons/power.svg
         assets/icons/about.svg
         assets/icons/archtitan-logo.png
-        assets/icons/eco.svg
-        assets/icons/sliders.svg
+        assets/icons/eco.png
+        assets/icons/sliders.png
         assets/icons/zap.svg
 )
 
