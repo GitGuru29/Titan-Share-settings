@@ -34,9 +34,8 @@ Slider {
         x: root.leftPadding + root.visualPosition * (root.availableWidth - width)
         y: root.topPadding + root.availableHeight / 2 - height / 2
         width: 16; height: 16; radius: 8
-        color: "#FFFFFF"
-        border.width: 2
-        border.color: root.fillColor
+        color: root.fillColor
+        border.width: 0
 
         scale: root.pressed ? 0.9 : 1.0
         Behavior on scale { NumberAnimation { duration: 80 } }

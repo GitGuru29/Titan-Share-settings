@@ -34,10 +34,10 @@ ScrollView {
 
             Repeater {
                 model: [
-                    { name: "Dark",     bg: "#111111", bg2: "#0D0D0D" },
-                    { name: "Darker",   bg: "#0A0A0A", bg2: "#070707" },
-                    { name: "Midnight", bg: "#08080D", bg2: "#050508" },
-                    { name: "Dim",      bg: "#181818", bg2: "#131313" }
+                    { name: "Dark",     bg: "#1C1C1C", bg2: "#111111" },
+                    { name: "Darker",   bg: "#0A0A0A", bg2: "#050505" },
+                    { name: "Midnight", bg: "#0F111A", bg2: "#090A0F" },
+                    { name: "Dim",      bg: "#2D2D2D", bg2: "#222222" }
                 ]
                 delegate: Rectangle {
                     Layout.fillWidth: true
@@ -181,6 +181,7 @@ ScrollView {
                 }
                 Item { Layout.fillWidth: true }
                 TitanSwitch {
+                    onColor: root.accent
                     checked: SettingsBackend.glassmorphism
                     onCheckedChanged: SettingsBackend.glassmorphism = checked
                 }
@@ -207,6 +208,7 @@ ScrollView {
                 Item { Layout.fillWidth: true }
                 TitanSlider {
                     width: 160; from: 0.4; to: 1.0; stepSize: 0.01
+                    fillColor: root.accent
                     value: SettingsBackend.panelOpacity
                     onValueChanged: SettingsBackend.panelOpacity = value
                 }
@@ -237,19 +239,38 @@ ScrollView {
                     model: ["Papirus-Dark", "Papirus", "Adwaita", "Breeze-Dark"]
                     delegate: Rectangle {
                         Layout.fillWidth: true
-                        height: 46; radius: 8
+                        height: 70; radius: 8
                         color: SettingsBackend.iconTheme === modelData ? "#1E2A3A" : "#1A1A1A"
                         border.width: 1
                         border.color: SettingsBackend.iconTheme === modelData ? root.accent : "#2A2A2A"
                         Behavior on color       { ColorAnimation { duration: 150 } }
                         Behavior on border.color{ ColorAnimation { duration: 150 } }
 
-                        Text {
+                        Column {
                             anchors.centerIn: parent
-                            text: modelData
-                            font { pixelSize: 12; family: "Inter" }
-                            font.weight: SettingsBackend.iconTheme === modelData ? Font.Medium : Font.Normal
-                            color: SettingsBackend.iconTheme === modelData ? root.textHigh : root.textMid
+                            spacing: 6
+                            
+                            // Mock folder icon preview
+                            Item {
+                                width: 28; height: 22
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                Rectangle {
+                                    y: 6; width: 28; height: 16; radius: 3
+                                    color: modelData.includes("Adwaita") ? "#E3C293" : (modelData.includes("Breeze") ? "#3DAEE9" : (modelData.includes("Dark") ? "#3D82AE" : "#4FC3F7"))
+                                }
+                                Rectangle {
+                                    x: 2; y: 2; width: 12; height: 6; radius: 2
+                                    color: Qt.lighter(modelData.includes("Adwaita") ? "#E3C293" : (modelData.includes("Breeze") ? "#3DAEE9" : (modelData.includes("Dark") ? "#3D82AE" : "#4FC3F7")), 1.15)
+                                }
+                            }
+
+                            Text {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                text: modelData
+                                font { pixelSize: 11; family: "Inter" }
+                                font.weight: SettingsBackend.iconTheme === modelData ? Font.Medium : Font.Normal
+                                color: SettingsBackend.iconTheme === modelData ? root.textHigh : root.textMid
+                            }
                         }
 
                         MouseArea {
@@ -341,7 +362,8 @@ ScrollView {
                 }
                 Item { Layout.fillWidth: true }
                 TitanSlider {
-                    width: 160; from: 9; to: 18; stepSize: 1
+                    width: 160; from: 10; to: 24; stepSize: 1
+                    fillColor: root.accent
                     value: SettingsBackend.fontSize
                     onValueChanged: SettingsBackend.fontSize = value
                 }
