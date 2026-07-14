@@ -1,6 +1,7 @@
 import QtQuick
 import QtQuick.Layouts
 import QtQuick.Controls.Basic
+import QtQuick.Effects
 import ArchTitanSettings
 
 ScrollView {
@@ -34,19 +35,19 @@ ScrollView {
                         name: "Power Saver",
                         desc: "Maximize battery life",
                         accent: "#4CAF82",
-                        icon: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%234CAF82' d='M17,8C8,10 5.9,16.17 3.82,21.34L5.71,22L6.66,19.7C7.14,19.87 7.64,20 8,20C19,20 22,3 22,3C21,5 14,5.25 9,6.25C4,7.25 7,11.5 7,11.5C7,11.5 9,8 17,8Z'/></svg>"
+                        icon: "qrc:/ArchTitanSettings/assets/icons/eco.svg"
                     },
                     { 
                         name: "Balanced",
                         desc: "Smart performance",
                         accent: "#4C8BF5",
-                        icon: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%234C8BF5' d='M3,17V19H9V17H3M3,5V7H13V5H3M13,21V19H21V17H13V15H11V21H13M7,9V11H3V13H7V15H9V9H7M21,13V11H11V13H21M15,9H17V7H21V5H17V3H15V9Z'/></svg>"
+                        icon: "qrc:/ArchTitanSettings/assets/icons/sliders.svg"
                     },
                     { 
                         name: "Performance",
                         desc: "Max CPU performance",
                         accent: "#D4853A",
-                        icon: "data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><path fill='%23D4853A' d='M7,2V13H10V22L17,10H13L17,2H7Z'/></svg>"
+                        icon: "qrc:/ArchTitanSettings/assets/icons/zap.svg"
                     }
                 ]
                 delegate: Rectangle {
@@ -71,12 +72,20 @@ ScrollView {
                             border.color: Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, sel ? 0.5 : 0.2)
 
                             Image {
+                                id: profileIcon
                                 anchors.centerIn: parent
                                 width: 22; height: 22
                                 source: modelData.icon
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
                                 mipmap: true
+                                visible: false
+                            }
+                            MultiEffect {
+                                anchors.fill: profileIcon
+                                source: profileIcon
+                                colorization: 1.0
+                                colorizationColor: modelData.accent
                             }
                         }
 
