@@ -8,9 +8,9 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textHigh: "#EBEBEB"
-    property color textMid:  "#8C8C8C"
-    property color textLow:  "#4A4A4A"
+    property color textHigh: globalTextHigh
+    property color textMid:  globalTextMid
+    property color textLow:  globalTextLow
     property color accent:   SettingsBackend.accentColor
     property color red:      "#E05C6A"
     property color purple:   "#7C6FCD"
@@ -77,7 +77,7 @@ ScrollView {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
 
             RowLayout {
                 Layout.fillWidth: true

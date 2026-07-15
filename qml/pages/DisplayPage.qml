@@ -8,9 +8,9 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textHigh: "#EBEBEB"
-    property color textMid:  "#8C8C8C"
-    property color textLow:  "#4A4A4A"
+    property color textHigh: globalTextHigh
+    property color textMid:  globalTextMid
+    property color textLow:  globalTextLow
     property color accent:   SettingsBackend.accentColor
 
     ColumnLayout {
@@ -94,7 +94,7 @@ ScrollView {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -155,7 +155,7 @@ ScrollView {
                     ]
                     delegate: Rectangle {
                         Layout.fillWidth: true; height: 64; radius: 8
-                        color: "#141414"; border.width: 1; border.color: "#222222"
+                        color: globalBg3; border.width: 1; border.color: globalBorder1
                         Layout.rightMargin: index === 0 ? 6 : 0
 
                         Column {
@@ -179,7 +179,7 @@ ScrollView {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 10; Layout.bottomMargin: 10 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 10; Layout.bottomMargin: 10 }
 
             RowLayout {
                 Layout.fillWidth: true

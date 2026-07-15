@@ -9,9 +9,9 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textHigh: "#EBEBEB"
-    property color textMid:  "#8C8C8C"
-    property color textLow:  "#4A4A4A"
+    property color textHigh: globalTextHigh
+    property color textMid:  globalTextMid
+    property color textLow:  globalTextLow
     property color accent:   SettingsBackend.accentColor
     property color green:    "#4CAF82"
     property color orange:   "#D4853A"
@@ -57,9 +57,9 @@ ScrollView {
                     Layout.fillWidth: true; height: 145; radius: 12
                     property bool sel: SettingsBackend.powerProfile === modelData.name
 
-                    color: sel ? Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, 0.08) : "#161616"
+                    color: sel ? Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, 0.08) : globalBg3
                     border.width: sel ? 2 : 1
-                    border.color: sel ? modelData.accent : "#2A2A2A"
+                    border.color: sel ? modelData.accent : globalBorder0
                     Behavior on color       { ColorAnimation { duration: 180 } }
                     Behavior on border.color{ ColorAnimation { duration: 180 } }
 
@@ -160,7 +160,7 @@ ScrollView {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -233,7 +233,7 @@ ScrollView {
                     Rectangle {
                         anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
                         width: parent.width - 6; radius: 6
-                        color: "#1A1A1A"; border.width: 1; border.color: "#2A2A2A"
+                        color: globalBg3; border.width: 1; border.color: globalBorder0
 
                         Rectangle {
                             anchors { left: parent.left; top: parent.top; bottom: parent.bottom; margins: 3 }
@@ -247,7 +247,7 @@ ScrollView {
                     }
                     Rectangle {
                         anchors { right: parent.right; verticalCenter: parent.verticalCenter }
-                        width: 5; height: 18; radius: 2; color: "#2A2A2A"
+                        width: 5; height: 18; radius: 2; color: globalBorder0
                     }
                 }
             }

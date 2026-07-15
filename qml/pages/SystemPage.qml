@@ -8,9 +8,9 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textHigh: "#EBEBEB"
-    property color textMid:  "#8C8C8C"
-    property color textLow:  "#4A4A4A"
+    property color textHigh: globalTextHigh
+    property color textMid:  globalTextMid
+    property color textLow:  globalTextLow
     property color accent:   SettingsBackend.accentColor
     property color green:    "#4CAF82"
     property color orange:   "#D4853A"
@@ -34,7 +34,7 @@ ScrollView {
                 ]
                 delegate: Rectangle {
                     Layout.fillWidth: true; height: 120; radius: 10
-                    color: "#141414"; border.width: 1; border.color: "#222222"
+                    color: globalBg3; border.width: 1; border.color: globalBorder1
 
                     property real val: modelData.label === "CPU" ? SystemInfo.cpuUsage :
                                        modelData.label === "RAM" ? SystemInfo.usedRam :
@@ -70,7 +70,7 @@ ScrollView {
                         }
 
                         Rectangle {
-                            width: parent.width; height: 4; radius: 2; color: "#2A2A2A"
+                            width: parent.width; height: 4; radius: 2; color: globalBorder0
                             Rectangle {
                                 width: parent.parent.parent.pct * parent.width
                                 height: parent.height; radius: parent.radius
@@ -163,7 +163,7 @@ ScrollView {
                         }
                         StatusBadge { text: "Running"; statusColor: root.green }
                     }
-                    Rectangle { Layout.fillWidth: true; height: 1; color: "#1F1F1F"; visible: index < 4 }
+                    Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; visible: index < 4 }
                 }
             }
         }

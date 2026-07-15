@@ -8,9 +8,9 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textHigh: "#EBEBEB"
-    property color textMid:  "#8C8C8C"
-    property color textLow:  "#4A4A4A"
+    property color textHigh: globalTextHigh
+    property color textMid:  globalTextMid
+    property color textLow:  globalTextLow
     property color accent:   SettingsBackend.accentColor
     property color green:    "#4CAF82"
     property color red:      "#E05C6A"
@@ -57,7 +57,7 @@ ScrollView {
                 TitanSwitch { checked: SettingsBackend.autolockEnabled; onCheckedChanged: SettingsBackend.autolockEnabled = checked }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -129,7 +129,7 @@ ScrollView {
                         Item { Layout.fillWidth: true }
                         StatusBadge { text: modelData.enabled ? "Active" : "Inactive"; statusColor: modelData.enabled ? root.green : root.red }
                     }
-                    Rectangle { Layout.fillWidth: true; height: 1; color: "#1F1F1F"; visible: index < 3 }
+                    Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; visible: index < 3 }
                 }
             }
         }
@@ -145,8 +145,8 @@ ScrollView {
                     model: [{ text: "Lock Screen", icon: "🔒" }, { text: "Change Password", icon: "🔑" }]
                     delegate: Rectangle {
                         Layout.fillWidth: true; height: 48; radius: 8
-                        color: actH.containsMouse ? "#1E1E1E" : "#141414"
-                        border.width: 1; border.color: "#2A2A2A"
+                        color: actH.containsMouse ? globalBg4 : globalBg3
+                        border.width: 1; border.color: globalBorder0
                         Behavior on color { ColorAnimation { duration: 100 } }
                         Row {
                             anchors.centerIn: parent; spacing: 8
@@ -214,11 +214,11 @@ ScrollView {
                         }
                         StatusBadge { text: "Running"; statusColor: root.green }
                     }
-                    Rectangle { Layout.fillWidth: true; height: 1; color: "#1F1F1F"; visible: index < sandboxList.count - 1 }
+                    Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; visible: index < sandboxList.count - 1 }
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
 
             RowLayout {
                 Layout.fillWidth: true

@@ -14,10 +14,10 @@ Rectangle {
 
     color: root.primary
            ? (hover.pressed ? Qt.darker(root.accentColor, 1.15) : (hover.containsMouse ? Qt.lighter(root.accentColor, 1.1) : root.accentColor))
-           : (hover.containsMouse ? "#242424" : "#1C1C1C")
+           : (hover.containsMouse ? globalBg4 : globalBg3)
 
     border.width: root.primary ? 0 : 1
-    border.color: "#2F2F2F"
+    border.color: globalBorder0
 
     Behavior on color { ColorAnimation { duration: 100 } }
 
@@ -29,7 +29,7 @@ Rectangle {
         text: root.text
         font { pixelSize: 13; family: "Inter" }
         font.weight: Font.Medium
-        color: root.primary ? "#FFFFFF" : "#ABABAB"
+        color: root.primary ? "#FFFFFF" : globalTextHigh
     }
 
     scale: hover.pressed ? 0.97 : 1.0

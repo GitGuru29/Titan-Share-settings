@@ -8,9 +8,9 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textHigh: "#EBEBEB"
-    property color textMid:  "#8C8C8C"
-    property color textLow:  "#4A4A4A"
+    property color textHigh: globalTextHigh
+    property color textMid:  globalTextMid
+    property color textLow:  globalTextLow
     property color accent:   SettingsBackend.accentColor
     property color green:    "#4CAF82"
     property color red:      "#E05C6A"
@@ -92,7 +92,7 @@ ScrollView {
                         anchors.verticalCenter: parent.verticalCenter
                     }
                     Rectangle {
-                        width: 160; height: 4; radius: 2; color: "#2A2A2A"
+                        width: 160; height: 4; radius: 2; color: globalBorder0
                         anchors.verticalCenter: parent.verticalCenter
                         Rectangle {
                             width: (NetworkManager.signalStrength / 100) * parent.width
@@ -132,7 +132,7 @@ ScrollView {
                 model: NetworkManager.availableNetworks
                 delegate: Rectangle {
                     Layout.fillWidth: true; height: 44; radius: 7
-                    color: netH.containsMouse ? "#1E1E1E" : "transparent"
+                    color: netH.containsMouse ? globalBg4 : "transparent"
                     border.width: NetworkManager.connectedSsid === modelData ? 1 : 0
                     border.color: root.green + "50"
                     Behavior on color { ColorAnimation { duration: 100 } }
@@ -168,9 +168,9 @@ ScrollView {
             }
 
             Rectangle {
-                Layout.fillWidth: true; height: 48; radius: 8; color: "#141414"
+                Layout.fillWidth: true; height: 48; radius: 8; color: globalBg3
                 visible: NetworkManager.availableNetworks.length === 0
-                border.width: 1; border.color: "#1F1F1F"
+                border.width: 1; border.color: globalBorder1
                 Text {
                     anchors.centerIn: parent
                     text: "No networks found — click Scan"
@@ -223,7 +223,7 @@ ScrollView {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 8; Layout.bottomMargin: 8 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 8; Layout.bottomMargin: 8 }
 
             TitanButton { text: "Disconnect"; primary: false; width: 120; onClicked: NetworkManager.disconnectNetwork() }
         }

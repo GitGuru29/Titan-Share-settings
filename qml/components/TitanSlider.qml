@@ -4,7 +4,7 @@ import ArchTitanSettings
 
 Slider {
     id: root
-    property color trackColor: "#2A2A2A"
+    property color trackColor: globalBorder0
     property color fillColor:  "#4C8BF5"
 
     implicitHeight: 20
@@ -18,7 +18,7 @@ Slider {
             width: parent.width; height: 4; radius: 2
             color: root.trackColor
             border.width: 1
-            border.color: "#1A1A1A"
+            border.color: globalBorder1
         }
 
         // Fill

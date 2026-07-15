@@ -3,11 +3,11 @@ import QtQuick.Layouts
 import ArchTitanSettings
 
 Rectangle {
-    id: root
-    color: "#161616"
+    id: cardRoot
+    color: globalBg3
     radius: 10
     border.width: 1
-    border.color: hover.containsMouse ? "#2F2F2F" : "#1F1F1F"
+    border.color: hover.containsMouse ? globalBorder0 : globalBorder1
     implicitHeight: col.implicitHeight + 36
     clip: true
 
@@ -24,26 +24,26 @@ Rectangle {
 
         // Optional title
         Item {
-            visible: root.title !== ""
+            visible: cardRoot.title !== ""
             Layout.fillWidth: true
             height: 28
 
             Text {
                 anchors.verticalCenter: parent.verticalCenter
-                text: root.title.toUpperCase()
+                text: cardRoot.title.toUpperCase()
                 font { pixelSize: 10; family: "Inter" }
                 font.weight: Font.DemiBold
                 font.letterSpacing: 1.2
-                color: "#4A4A4A"
+                color: globalTextLow
             }
         }
 
         // Subtle divider under title
         Rectangle {
-            visible: root.title !== ""
+            visible: cardRoot.title !== ""
             Layout.fillWidth: true
             height: 1
-            color: "#1F1F1F"
+            color: globalBorder1
             Layout.bottomMargin: 12
         }
     }

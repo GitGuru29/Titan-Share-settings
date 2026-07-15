@@ -16,18 +16,31 @@ ApplicationWindow {
     flags: Qt.Window | Qt.FramelessWindowHint
 
     // ── Design tokens ──────────────────────────────────────────────
-    readonly property color bg0:          "#0D0D0D"   // deepest bg
-    readonly property color bg1:          "#B3111111" // window bg (translucent for glassmorphism)
-    readonly property color bg2:          "#99171717" // sidebar bg (more translucent)
-    readonly property color bg3:          "#1C1C1C"   // card/row bg
-    readonly property color bg4:          "#242424"   // hover bg
-    readonly property color border0:      "#2A2A2A"   // strong border
-    readonly property color border1:      "#1F1F1F"   // subtle border
+    readonly property bool isDarkTheme: WallpaperManager.isDark
+
+    readonly property color globalBg0:          isDarkTheme ? "#0D0D0D" : "#F5F5F5"
+    readonly property color globalBg1:          isDarkTheme ? "#B3111111" : "#B3FFFFFF"
+    readonly property color globalBg2:          isDarkTheme ? "#99171717" : "#99E5E5E5"
+    readonly property color globalBg3:          isDarkTheme ? "#161616" : "#EAEAEA"
+    readonly property color globalBg4:          isDarkTheme ? "#242424" : "#DDDDDD"
+    readonly property color globalBorder0:      isDarkTheme ? "#2A2A2A" : "#CCCCCC"
+    readonly property color globalBorder1:      isDarkTheme ? "#1F1F1F" : "#E0E0E0"
+    readonly property color globalTextHigh:     isDarkTheme ? "#EBEBEB" : "#111111"
+    readonly property color globalTextMid:      isDarkTheme ? "#8C8C8C" : "#444444"
+    readonly property color globalTextLow:      isDarkTheme ? "#4A4A4A" : "#777777"
+
+    readonly property color bg0:          globalBg0
+    readonly property color bg1:          globalBg1
+    readonly property color bg2:          globalBg2
+    readonly property color bg3:          isDarkTheme ? "#1C1C1C" : "#E5E5E5"
+    readonly property color bg4:          globalBg4
+    readonly property color border0:      globalBorder0
+    readonly property color border1:      globalBorder1
     property color accent:       SettingsBackend.accentColor
     property color accentDim:    Qt.alpha(SettingsBackend.accentColor, 0.25)
-    readonly property color textHigh:     "#EBEBEB"   // primary text
-    readonly property color textMid:      "#8C8C8C"   // secondary text
-    readonly property color textLow:      "#4A4A4A"   // disabled / dim text
+    readonly property color textHigh:     globalTextHigh
+    readonly property color textMid:      globalTextMid
+    readonly property color textLow:      globalTextLow
     readonly property color green:        "#4CAF82"
     readonly property color red:          "#E05C6A"
     readonly property color orange:       "#D4853A"

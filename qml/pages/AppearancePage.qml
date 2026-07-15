@@ -8,9 +8,9 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textHigh:  "#EBEBEB"
-    property color textMid:   "#8C8C8C"
-    property color textLow:   "#4A4A4A"
+    property color textHigh:  globalTextHigh
+    property color textMid:   globalTextMid
+    property color textLow:   globalTextLow
     property color accent:    SettingsBackend.accentColor
     property color green:     "#4CAF82"
     property color orange:    "#D4853A"
@@ -42,10 +42,10 @@ ScrollView {
                 delegate: Rectangle {
                     Layout.fillWidth: true
                     height: 104; radius: 10
-                    color: "#161616"
+                    color: globalBg3
                     border.width: SettingsBackend.colorTheme === modelData.name ? 2 : 1
                     border.color: SettingsBackend.colorTheme === modelData.name
-                                  ? root.accent : "#2A2A2A"
+                                  ? root.accent : globalBorder0
                     Behavior on border.color { ColorAnimation { duration: 150 } }
 
                     // Preview window
@@ -57,7 +57,7 @@ ScrollView {
                             width: 60; height: 38; radius: 7
                             color: modelData.bg
                             anchors.horizontalCenter: parent.horizontalCenter
-                            border.width: 1; border.color: "#2A2A2A"
+                            border.width: 1; border.color: globalBorder0
 
                             // Titlebar
                             Rectangle {
@@ -187,7 +187,7 @@ ScrollView {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
 
             RowLayout {
                 Layout.fillWidth: true
@@ -240,9 +240,9 @@ ScrollView {
                     delegate: Rectangle {
                         Layout.fillWidth: true
                         height: 70; radius: 8
-                        color: SettingsBackend.iconTheme === modelData ? "#1E2A3A" : "#1A1A1A"
+                        color: SettingsBackend.iconTheme === modelData ? (isDarkTheme ? "#1E2A3A" : "#D0E0F0") : globalBg3
                         border.width: 1
-                        border.color: SettingsBackend.iconTheme === modelData ? root.accent : "#2A2A2A"
+                        border.color: SettingsBackend.iconTheme === modelData ? root.accent : globalBorder0
                         Behavior on color       { ColorAnimation { duration: 150 } }
                         Behavior on border.color{ ColorAnimation { duration: 150 } }
 
@@ -317,9 +317,9 @@ ScrollView {
                             height: 30
                             width: ffLabel.implicitWidth + 24
                             radius: 6
-                            color: SettingsBackend.fontFamily === modelData ? "#1E2A3A" : "#1A1A1A"
+                            color: SettingsBackend.fontFamily === modelData ? (isDarkTheme ? "#1E2A3A" : "#D0E0F0") : globalBg3
                             border.width: 1
-                            border.color: SettingsBackend.fontFamily === modelData ? root.accent : "#2A2A2A"
+                            border.color: SettingsBackend.fontFamily === modelData ? root.accent : globalBorder0
                             Behavior on color       { ColorAnimation { duration: 120 } }
                             Behavior on border.color{ ColorAnimation { duration: 120 } }
 
@@ -341,7 +341,7 @@ ScrollView {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: "#222222"; Layout.topMargin: 4; Layout.bottomMargin: 4 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 4; Layout.bottomMargin: 4 }
 
             // Font Size row
             RowLayout {

@@ -11,10 +11,10 @@ Item {
     property string label: ""
     property bool   active: false
     property color  accent:     "#4C8BF5"
-    property color  bgActive:   "#1C1C1C"
-    property color  bgHover:    "#242424"
-    property color  textActive: "#EBEBEB"
-    property color  textNormal: "#8C8C8C"
+    property color  bgActive:   globalBg3
+    property color  bgHover:    globalBg4
+    property color  textActive: globalTextHigh
+    property color  textNormal: globalTextMid
 
     signal clicked()
 

@@ -6,7 +6,7 @@ Switch {
     id: root
 
     property color onColor:  "#4C8BF5"
-    property color offColor: "#2A2A2A"
+    property color offColor: globalBorder0
 
     implicitWidth: 44
     implicitHeight: 24
@@ -17,7 +17,7 @@ Switch {
         radius: height / 2
         color: root.checked ? root.onColor : root.offColor
         border.width: 1
-        border.color: root.checked ? "transparent" : "#3A3A3A"
+        border.color: root.checked ? "transparent" : globalBorder1
 
         Behavior on color { ColorAnimation { duration: 180 } }
 
