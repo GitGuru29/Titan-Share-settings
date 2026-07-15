@@ -3,15 +3,26 @@
 set -e
 cd "$(dirname "$0")"
 
-# Find the most recently modified PNG in Downloads and copy it
-NEWEST_PNG=$(ls -t ~/Downloads/*.png 2>/dev/null | head -n 1)
-if [ -n "$NEWEST_PNG" ]; then
-    echo "Found transparent PNG: $NEWEST_PNG"
-    cp "$NEWEST_PNG" assets/icons/archtitan-logo.png
+LOGO_ASSET="assets/icons/LOGO.png"
+LOGO_SOURCE="$HOME/Downloads/LOGO.png"
+
+# Only copy the real ArchTitan logo if the asset is missing
+if [ ! -f "$LOGO_ASSET" ] || [ ! -s "$LOGO_ASSET" ]; then
+    if [ -f "$LOGO_SOURCE" ]; then
+        echo "Copying ArchTitan logo from Downloads..."
+        cp "$LOGO_SOURCE" "$LOGO_ASSET"
+    else
+        echo "WARNING: $LOGO_SOURCE not found. Logo asset is missing."
+    fi
 else
-    echo "No PNG found in Downloads. Creating a placeholder to prevent build error."
-    touch assets/icons/archtitan-logo.png
+    echo "Logo asset already present: $LOGO_ASSET"
 fi
+# Remove black background from performance icon if it hasn't been generated
+if [ ! -f "assets/icons/performance_nobg.png" ] && [ -f "assets/icons/performance.png" ]; then
+    echo "Running background removal for performance icon..."
+    python3 remove_bg.py
+fi
+
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -Wno-dev
 make -j$(nproc)

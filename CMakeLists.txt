@@ -5,6 +5,7 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 find_package(Qt6 6.4 REQUIRED COMPONENTS
     Core
@@ -60,10 +61,10 @@ qt_add_qml_module(archtitan-settings
         assets/icons/security.svg
         assets/icons/power.svg
         assets/icons/about.svg
-        assets/icons/archtitan-logo.png
-        assets/icons/eco.png
-        assets/icons/sliders.png
-        assets/icons/zap.svg
+        assets/icons/LOGO.png
+        assets/icons/powersaving.png
+        assets/icons/balanced.png
+        assets/icons/performance_nobg.png
 )
 
 target_link_libraries(archtitan-settings PRIVATE

@@ -117,7 +117,7 @@ ApplicationWindow {
                                 verticalCenter: parent.verticalCenter
                             }
                             height: 70
-                            source: "qrc:/ArchTitanSettings/assets/icons/archtitan-logo.png"
+                            source: "qrc:/ArchTitanSettings/assets/icons/LOGO.png"
                             fillMode: Image.PreserveAspectFit
                             smooth: true
                         }

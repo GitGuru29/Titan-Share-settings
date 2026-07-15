@@ -35,22 +35,22 @@ ScrollView {
                         name: "Power Saver",
                         desc: "Maximize battery life",
                         accent: "#4CAF82",
-                        icon: "qrc:/ArchTitanSettings/assets/icons/eco.png",
+                        icon: "qrc:/ArchTitanSettings/assets/icons/powersaving.png",
                         colorize: false
                     },
                     { 
                         name: "Balanced",
                         desc: "Smart performance",
                         accent: "#4C8BF5",
-                        icon: "qrc:/ArchTitanSettings/assets/icons/sliders.png",
+                        icon: "qrc:/ArchTitanSettings/assets/icons/balanced.png",
                         colorize: false
                     },
                     { 
                         name: "Performance",
                         desc: "Max CPU performance",
                         accent: "#D4853A",
-                        icon: "qrc:/ArchTitanSettings/assets/icons/zap.svg",
-                        colorize: true
+                        icon: "qrc:/ArchTitanSettings/assets/icons/performance_nobg.png",
+                        colorize: false
                     }
                 ]
                 delegate: Rectangle {

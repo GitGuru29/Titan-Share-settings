@@ -27,7 +27,7 @@ int main(int argc, char *argv[]) {
     app.setOrganizationName("ArchTitan");
     app.setOrganizationDomain("archtitan.os");
     // Icon is optional, skip if resource missing
-    // app.setWindowIcon(QIcon(":/assets/icons/archtitan-logo.png"));
+    // app.setWindowIcon(QIcon(":/assets/icons/LOGO.png"));
 
     QQuickStyle::setStyle("Basic");
 
