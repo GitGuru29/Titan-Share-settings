@@ -54,7 +54,7 @@ ScrollView {
                     }
                 ]
                 delegate: Rectangle {
-                    Layout.fillWidth: true; height: 110; radius: 10
+                    Layout.fillWidth: true; height: 145; radius: 12
                     property bool sel: SettingsBackend.powerProfile === modelData.name
 
                     color: sel ? Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, 0.08) : "#161616"
@@ -65,10 +65,10 @@ ScrollView {
 
                     Column {
                         anchors.centerIn: parent
-                        spacing: 8
+                        spacing: 10
 
                         Rectangle {
-                            width: 40; height: 40; radius: 10
+                            width: 64; height: 64; radius: 14
                             anchors.horizontalCenter: parent.horizontalCenter
                             color: Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, sel ? 0.18 : 0.08)
                             border.width: 1
@@ -77,8 +77,8 @@ ScrollView {
                             Image {
                                 id: profileIcon
                                 anchors.centerIn: parent
-                                width: modelData.colorize ? 24 : 32
-                                height: modelData.colorize ? 24 : 32
+                                width: modelData.colorize ? 24 : 52
+                                height: modelData.colorize ? 24 : 52
                                 sourceSize: modelData.colorize ? Qt.size(24, 24) : undefined
                                 source: modelData.icon
                                 fillMode: Image.PreserveAspectFit
@@ -97,14 +97,14 @@ ScrollView {
 
                         Text {
                             text: modelData.name
-                            font { pixelSize: 12; family: "Inter" }
+                            font { pixelSize: 13; family: "Inter" }
                             font.weight: Font.Medium
                             color: sel ? root.textHigh : root.textMid
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
                         Text {
                             text: modelData.desc
-                            font { pixelSize: 10; family: "Inter" }
+                            font { pixelSize: 11; family: "Inter" }
                             color: root.textLow
                             anchors.horizontalCenter: parent.horizontalCenter
                         }
