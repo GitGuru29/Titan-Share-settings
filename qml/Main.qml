@@ -306,23 +306,15 @@ ApplicationWindow {
 
     // ── Power profile switch toast overlay ─────────────────────────────────
     property var _profileMeta: {
-        var p = SettingsBackend.powerProfile
+        var p = SettingsBackend.powerProfile;
         if (p === "Performance")
             return { icon: "qrc:/ArchTitanSettings/assets/icons/performance_nobg.png",
-                     label: "Performance", accent: "#E05C6A" }
+                     label: "Performance", accent: "#E05C6A", colorize: false }
         if (p === "Power Saver")
             return { icon: "qrc:/ArchTitanSettings/assets/icons/powersaving.png",
-                     label: "Power Saver", accent: "#4CAF82" }
+                     label: "Power Saver", accent: "#4CAF82", colorize: false }
         return { icon: "qrc:/ArchTitanSettings/assets/icons/balanced.png",
-                 label: "Balanced", accent: "#7AA2F7" }
-    }
-
-    // Kick off the right per-profile icon animation after the pop lands
-    function startProfileAnim() {
-        var p = SettingsBackend.powerProfile
-        if      (p === "Performance") perfSpinAnim.start()
-        else if (p === "Balanced")    balancedSwingAnim.start()
-        else                          saverBreathAnim.start()
+                 label: "Balanced", accent: "#7AA2F7", colorize: false }
     }
 
     Item {
@@ -342,7 +334,8 @@ ApplicationWindow {
         // Central card
         Rectangle {
             anchors.centerIn: parent
-            width: 240; height: 220; radius: 24
+            width: 240; height: 220
+            radius: 24
             color: isDarkTheme ? "#CC111111" : "#CCF5F5F5"
             border.width: 1
             border.color: root._profileMeta.accent
@@ -357,7 +350,8 @@ ApplicationWindow {
                 border.color: Qt.rgba(
                     Qt.color(root._profileMeta.accent).r,
                     Qt.color(root._profileMeta.accent).g,
-                    Qt.color(root._profileMeta.accent).b, 0.35)
+                    Qt.color(root._profileMeta.accent).b,
+                    0.35)
                 z: -1
             }
 
@@ -365,7 +359,7 @@ ApplicationWindow {
                 anchors.centerIn: parent
                 spacing: 18
 
-                // ── Icon box ──────────────────────────────────────────────
+                // Icon container — pops in large
                 Rectangle {
                     id: iconBox
                     anchors.horizontalCenter: parent.horizontalCenter
@@ -373,86 +367,43 @@ ApplicationWindow {
                     color: Qt.rgba(
                         Qt.color(root._profileMeta.accent).r,
                         Qt.color(root._profileMeta.accent).g,
-                        Qt.color(root._profileMeta.accent).b, 0.18)
+                        Qt.color(root._profileMeta.accent).b,
+                        0.18)
                     border.width: 1
                     border.color: Qt.rgba(
                         Qt.color(root._profileMeta.accent).r,
                         Qt.color(root._profileMeta.accent).g,
-                        Qt.color(root._profileMeta.accent).b, 0.5)
-                    scale: 0.1
+                        Qt.color(root._profileMeta.accent).b,
+                        0.5)
+                    scale: 0.1   // starts tiny, springs up via iconPopAnim
 
-                    // The icon — rotation animated for Performance
-                    Image {
-                        id: iconImg
-                        anchors.centerIn: parent
-                        width: 88; height: 88
-                        source: root._profileMeta.icon
-                        fillMode: Image.PreserveAspectFit
-                        smooth: true; mipmap: true
-                        transformOrigin: Item.Center
-                        rotation: 0
-                    }
-
-                    // ── Spring pop (fires on every profile switch) ────────
                     SequentialAnimation {
                         id: iconPopAnim
                         NumberAnimation {
                             target: iconBox; property: "scale"
-                            from: 0.1; to: 1.12; duration: 280
-                            easing.type: Easing.OutBack; easing.overshoot: 1.8
+                            from: 0.1; to: 1.12
+                            duration: 280; easing.type: Easing.OutBack; easing.overshoot: 1.8
                         }
                         NumberAnimation {
                             target: iconBox; property: "scale"
                             to: 1.0; duration: 120; easing.type: Easing.InOutQuad
                         }
-                        ScriptAction { script: root.startProfileAnim() }
                     }
 
-                    // ── PERFORMANCE: speedometer redline spin ─────────────
-                    // Fast acceleration then decelerate — needle hitting max RPM
-                    SequentialAnimation {
-                        id: perfSpinAnim
-                        // Rev hard: 0 → 1080° (3 full turns), fast accel with InQuart
-                        NumberAnimation {
-                            target: iconImg; property: "rotation"
-                            from: 0; to: 1080; duration: 700
-                            easing.type: Easing.InQuart
-                        }
-                        // Overshoot & settle: 1080 → 1110 then back to 1080
-                        NumberAnimation {
-                            target: iconImg; property: "rotation"
-                            to: 1110; duration: 160; easing.type: Easing.OutCubic
-                        }
-                        NumberAnimation {
-                            target: iconImg; property: "rotation"
-                            to: 1080; duration: 200; easing.type: Easing.InOutQuad
-                        }
-                    }
-
-                    // ── BALANCED: pendulum swing settle ───────────────────
-                    SequentialAnimation {
-                        id: balancedSwingAnim
-                        NumberAnimation { target: iconImg; property: "rotation"; from: -30; to: 30;  duration: 200; easing.type: Easing.OutCubic }
-                        NumberAnimation { target: iconImg; property: "rotation"; to: -18; duration: 160; easing.type: Easing.InOutSine }
-                        NumberAnimation { target: iconImg; property: "rotation"; to: 12;  duration: 130; easing.type: Easing.InOutSine }
-                        NumberAnimation { target: iconImg; property: "rotation"; to: -7;  duration: 100 }
-                        NumberAnimation { target: iconImg; property: "rotation"; to: 4;   duration: 80  }
-                        NumberAnimation { target: iconImg; property: "rotation"; to: 0;   duration: 120; easing.type: Easing.OutCubic }
-                    }
-
-                    // ── POWER SAVER: slow leaf-like breathe ───────────────
-                    SequentialAnimation {
-                        id: saverBreathAnim
-                        loops: 2
-                        NumberAnimation { target: iconBox; property: "scale"; to: 1.10; duration: 550; easing.type: Easing.InOutSine }
-                        NumberAnimation { target: iconBox; property: "scale"; to: 1.0;  duration: 550; easing.type: Easing.InOutSine }
+                    Image {
+                        anchors.centerIn: parent
+                        width: 88; height: 88
+                        source: root._profileMeta.icon
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true; mipmap: true
                     }
                 }
 
-                // ── Label ─────────────────────────────────────────────────
+                // Label
                 Column {
                     anchors.horizontalCenter: parent.horizontalCenter
                     spacing: 4
+
                     Text {
                         anchors.horizontalCenter: parent.horizontalCenter
                         text: "PROFILE SWITCHED"
@@ -476,29 +427,22 @@ ApplicationWindow {
         SequentialAnimation {
             id: toastAnim
             NumberAnimation { target: profileToast; property: "opacity"; to: 1.0; duration: 220; easing.type: Easing.OutCubic }
-            PauseAnimation  { duration: 2400 }
+            PauseAnimation  { duration: 2200 }
             NumberAnimation { target: profileToast; property: "opacity"; to: 0.0; duration: 380; easing.type: Easing.InCubic }
         }
     }
 
-    // Trigger toast + animations on profile switch
+    // Watch for profile changes and trigger toast + icon pop
     Connections {
         target: SettingsBackend
         function onPowerProfileChanged() {
-            // Stop everything
             toastAnim.stop()
             iconPopAnim.stop()
-            perfSpinAnim.stop()
-            balancedSwingAnim.stop()
-            saverBreathAnim.stop()
-            // Reset state
             profileToast.opacity = 0
             iconBox.scale = 0.1
-            iconBox.opacity = 1.0
-            iconImg.rotation = 0
-            // Fire
             toastAnim.start()
-            iconPopAnim.start()   // pop → ScriptAction fires startProfileAnim()
+            iconPopAnim.start()
         }
     }
 }
+

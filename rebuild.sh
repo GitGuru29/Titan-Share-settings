@@ -23,6 +23,8 @@ if [ ! -f "assets/icons/performance_nobg.png" ] && [ -f "assets/icons/performanc
     python3 remove_bg.py
 fi
 
+
+
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -Wno-dev
 make -j$(nproc)
