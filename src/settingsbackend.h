@@ -3,6 +3,8 @@
 #include <QSettings>
 #include <QString>
 #include <QVariant>
+#include <QDBusInterface>
+#include <QDBusReply>
 
 class SettingsBackend : public QObject {
     Q_OBJECT
@@ -66,6 +68,9 @@ public:
 
     Q_INVOKABLE void applyAndSave();
     Q_INVOKABLE void resetToDefaults();
+    Q_INVOKABLE void applyPowerProfileNow(const QString &profile);
+    Q_INVOKABLE void applyScreenTimeoutNow(int seconds);
+    Q_INVOKABLE void applySuspendTimeoutNow(int seconds);
     Q_INVOKABLE QString version() const { return QStringLiteral("1.0.0"); }
 
 signals:
@@ -99,4 +104,5 @@ private:
     int m_autolockDelay;
 
     void loadSettings();
+    bool applyPowerProfileDBus(const QString &profile);
 };

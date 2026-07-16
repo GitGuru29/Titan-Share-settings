@@ -4,6 +4,9 @@
 #include <QDir>
 #include <QFile>
 #include <QTextStream>
+#include <QDBusInterface>
+#include <QDBusReply>
+#include <QDBusVariant>
 
 SettingsBackend::SettingsBackend(QObject *parent)
     : QObject(parent)
@@ -88,14 +91,18 @@ void SettingsBackend::applyAndSave() {
         QProcess::startDetached("pkill", {"swayidle"});
     }
 
-    // 7. Power profile
+    // 7. Power profile via D-Bus → power-profiles-daemon
     if (m_powerProfile != "Custom") {
-        QString prof = m_powerProfile.toLower().replace(" ", "-");
-        // Try powerprofilesctl first, fall back to cpupower
-        QProcess::startDetached("bash", {"-c",
-            "powerprofilesctl set " + prof +
-            " 2>/dev/null || cpupower frequency-set -g " + prof + " 2>/dev/null"
-        });
+        // Map display name → daemon profile ID
+        QString prof = m_powerProfile.toLower();
+        prof.replace(' ', '-');  // "Power Saver" → "power-saver"
+
+        bool ok = applyPowerProfileDBus(prof);
+        if (!ok) {
+            // Fallback: try powerprofilesctl synchronously
+            qWarning() << "[SettingsBackend] D-Bus failed, falling back to powerprofilesctl";
+            QProcess::execute("powerprofilesctl", {"set", prof});
+        }
     }
 
     qDebug() << "[SettingsBackend] Applied:" << m_colorTheme << m_accentColor << m_iconTheme << fontSpec;
@@ -117,6 +124,94 @@ void SettingsBackend::resetToDefaults() {
     emit powerProfileChanged();
     emit autolockEnabledChanged();
     emit autolockDelayChanged();
+}
+
+// Apply & persist the power profile immediately — no full applyAndSave() needed.
+// Called directly from QML when the user clicks a profile card.
+void SettingsBackend::applyPowerProfileNow(const QString &profile)
+{
+    // 1. Update in-memory state and emit so UI updates instantly
+    if (m_powerProfile != profile) {
+        m_powerProfile = profile;
+        emit powerProfileChanged();
+    }
+
+    // 2. Persist just the profile key
+    m_settings.setValue(QStringLiteral("power/profile"), profile);
+    m_settings.sync();
+
+    // 3. Map display name → daemon ID  ("Power Saver" → "power-saver")
+    QString prof = profile.toLower();
+    prof.replace(QLatin1Char(' '), QLatin1Char('-'));
+
+    // 4. Try D-Bus first; synchronous fallback if daemon unavailable
+    bool ok = applyPowerProfileDBus(prof);
+    if (!ok) {
+        qWarning() << "[SettingsBackend] D-Bus failed, falling back to powerprofilesctl";
+        QProcess::execute(QStringLiteral("powerprofilesctl"), {QStringLiteral("set"), prof});
+    }
+}
+
+// Apply screen-off timeout immediately — persists and rewrites swayidle config.
+void SettingsBackend::applyScreenTimeoutNow(int seconds)
+{
+    if (m_screenTimeout != seconds) {
+        m_screenTimeout = seconds;
+        emit screenTimeoutChanged();
+    }
+    m_settings.setValue(QStringLiteral("power/screenTimeout"), seconds);
+    m_settings.sync();
+
+    // Rewrite swayidle config with the new screen timeout
+    QString swayidleConfig = QString(
+        "timeout %1 'hyprctl dispatch dpmsoff' resume 'hyprctl dispatch dpmson'\n"
+        "timeout %2 'systemctl suspend'\n"
+        "before-sleep 'swaylock -f'\n"
+    ).arg(m_screenTimeout).arg(m_suspendTimeout);
+
+    QFile idleConf(QDir::homePath() + QStringLiteral("/.config/swayidle/config"));
+    if (idleConf.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream(&idleConf) << swayidleConfig;
+        idleConf.close();
+    }
+    QProcess::startDetached(QStringLiteral("bash"),
+        {QStringLiteral("-c"), QStringLiteral("pkill swayidle 2>/dev/null; command -v swayidle >/dev/null && swayidle -w &")});
+
+    qDebug() << "[SettingsBackend] Screen timeout applied:" << seconds << "s";
+}
+
+// Apply suspend timeout immediately — persists and rewrites swayidle config.
+void SettingsBackend::applySuspendTimeoutNow(int seconds)
+{
+    if (m_suspendTimeout != seconds) {
+        m_suspendTimeout = seconds;
+        emit suspendTimeoutChanged();
+    }
+    m_settings.setValue(QStringLiteral("power/suspendTimeout"), seconds);
+    m_settings.sync();
+
+    // "Never" sentinel (99999) — just kill swayidle so suspend never fires
+    if (seconds >= 99999) {
+        QProcess::startDetached(QStringLiteral("pkill"), {QStringLiteral("swayidle")});
+        qDebug() << "[SettingsBackend] Suspend disabled (Never)";
+        return;
+    }
+
+    QString swayidleConfig = QString(
+        "timeout %1 'hyprctl dispatch dpmsoff' resume 'hyprctl dispatch dpmson'\n"
+        "timeout %2 'systemctl suspend'\n"
+        "before-sleep 'swaylock -f'\n"
+    ).arg(m_screenTimeout).arg(m_suspendTimeout);
+
+    QFile idleConf(QDir::homePath() + QStringLiteral("/.config/swayidle/config"));
+    if (idleConf.open(QIODevice::WriteOnly | QIODevice::Text)) {
+        QTextStream(&idleConf) << swayidleConfig;
+        idleConf.close();
+    }
+    QProcess::startDetached(QStringLiteral("bash"),
+        {QStringLiteral("-c"), QStringLiteral("pkill swayidle 2>/dev/null; command -v swayidle >/dev/null && swayidle -w &")});
+
+    qDebug() << "[SettingsBackend] Suspend timeout applied:" << seconds << "s";
 }
 
 // ── Getters / Setters ──────────────────────────────────────────────────────
@@ -203,4 +298,43 @@ void SettingsBackend::setAutolockDelay(int v) {
     if (m_autolockDelay == v) return;
     m_autolockDelay = v;
     emit autolockDelayChanged();
+}
+
+// ── D-Bus power profile helper ─────────────────────────────────────────────
+// Talks directly to power-profiles-daemon over the system bus.
+// Service:    org.freedesktop.UPower.PowerProfiles
+// Object:     /org/freedesktop/UPower/PowerProfiles
+// Interface:  org.freedesktop.DBus.Properties
+// Method:     Set("org.freedesktop.UPower.PowerProfiles", "ActiveProfile", variant)
+// Profile IDs: "power-saver" | "balanced" | "performance"
+bool SettingsBackend::applyPowerProfileDBus(const QString &profile)
+{
+    static const QString service   = QStringLiteral("org.freedesktop.UPower.PowerProfiles");
+    static const QString path      = QStringLiteral("/org/freedesktop/UPower/PowerProfiles");
+    static const QString propIface = QStringLiteral("org.freedesktop.DBus.Properties");
+    static const QString ppIface   = QStringLiteral("org.freedesktop.UPower.PowerProfiles");
+
+    QDBusInterface iface(service, path, propIface, QDBusConnection::systemBus());
+    if (!iface.isValid()) {
+        qWarning() << "[SettingsBackend] power-profiles-daemon D-Bus interface not available:"
+                   << iface.lastError().message();
+        return false;
+    }
+
+    // org.freedesktop.DBus.Properties.Set(interface, property, value)
+    QDBusReply<void> reply = iface.call(
+        QStringLiteral("Set"),
+        ppIface,
+        QStringLiteral("ActiveProfile"),
+        QVariant::fromValue(QDBusVariant(profile))
+    );
+
+    if (!reply.isValid()) {
+        qWarning() << "[SettingsBackend] D-Bus Set(ActiveProfile) failed:"
+                   << reply.error().message();
+        return false;
+    }
+
+    qDebug() << "[SettingsBackend] Power profile set via D-Bus:" << profile;
+    return true;
 }
