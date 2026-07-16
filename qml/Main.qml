@@ -27,7 +27,7 @@ ApplicationWindow {
     readonly property color globalBorder1:      isDarkTheme ? "#1F1F1F" : "#E0E0E0"
     readonly property color globalTextHigh:     isDarkTheme ? "#EBEBEB" : "#111111"
     readonly property color globalTextMid:      isDarkTheme ? "#8C8C8C" : "#444444"
-    readonly property color globalTextLow:      isDarkTheme ? "#4A4A4A" : "#777777"
+    readonly property color globalTextLow:      isDarkTheme ? "#707070" : "#777777"
 
     readonly property color bg0:          globalBg0
     readonly property color bg1:          globalBg1
@@ -37,7 +37,7 @@ ApplicationWindow {
     readonly property color border0:      globalBorder0
     readonly property color border1:      globalBorder1
     property color accent:       SettingsBackend.accentColor
-    property color accentDim:    Qt.alpha(SettingsBackend.accentColor, 0.25)
+    property color accentDim:    Qt.rgba(accent.r, accent.g, accent.b, 0.25)
     readonly property color textHigh:     globalTextHigh
     readonly property color textMid:      globalTextMid
     readonly property color textLow:      globalTextLow
@@ -301,6 +301,204 @@ ApplicationWindow {
                     }
                 }
             }
+        }
+    }
+
+    // ── Power profile switch toast overlay ─────────────────────────────────
+    property var _profileMeta: {
+        var p = SettingsBackend.powerProfile
+        if (p === "Performance")
+            return { icon: "qrc:/ArchTitanSettings/assets/icons/performance_nobg.png",
+                     label: "Performance", accent: "#E05C6A" }
+        if (p === "Power Saver")
+            return { icon: "qrc:/ArchTitanSettings/assets/icons/powersaving.png",
+                     label: "Power Saver", accent: "#4CAF82" }
+        return { icon: "qrc:/ArchTitanSettings/assets/icons/balanced.png",
+                 label: "Balanced", accent: "#7AA2F7" }
+    }
+
+    // Kick off the right per-profile icon animation after the pop lands
+    function startProfileAnim() {
+        var p = SettingsBackend.powerProfile
+        if      (p === "Performance") perfSpinAnim.start()
+        else if (p === "Balanced")    balancedSwingAnim.start()
+        else                          saverBreathAnim.start()
+    }
+
+    Item {
+        id: profileToast
+        anchors.fill: parent
+        opacity: 0
+        z: 999
+        visible: opacity > 0
+
+        // Backdrop tint
+        Rectangle {
+            anchors.fill: parent
+            color: isDarkTheme ? "#88000000" : "#88FFFFFF"
+            radius: 12
+        }
+
+        // Central card
+        Rectangle {
+            anchors.centerIn: parent
+            width: 240; height: 220; radius: 24
+            color: isDarkTheme ? "#CC111111" : "#CCF5F5F5"
+            border.width: 1
+            border.color: root._profileMeta.accent
+
+            // Outer glow ring
+            Rectangle {
+                anchors.centerIn: parent
+                width: parent.width + 6; height: parent.height + 6
+                radius: parent.radius + 3
+                color: "transparent"
+                border.width: 2
+                border.color: Qt.rgba(
+                    Qt.color(root._profileMeta.accent).r,
+                    Qt.color(root._profileMeta.accent).g,
+                    Qt.color(root._profileMeta.accent).b, 0.35)
+                z: -1
+            }
+
+            Column {
+                anchors.centerIn: parent
+                spacing: 18
+
+                // ── Icon box ──────────────────────────────────────────────
+                Rectangle {
+                    id: iconBox
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    width: 120; height: 120; radius: 28
+                    color: Qt.rgba(
+                        Qt.color(root._profileMeta.accent).r,
+                        Qt.color(root._profileMeta.accent).g,
+                        Qt.color(root._profileMeta.accent).b, 0.18)
+                    border.width: 1
+                    border.color: Qt.rgba(
+                        Qt.color(root._profileMeta.accent).r,
+                        Qt.color(root._profileMeta.accent).g,
+                        Qt.color(root._profileMeta.accent).b, 0.5)
+                    scale: 0.1
+
+                    // The icon — rotation animated for Performance
+                    Image {
+                        id: iconImg
+                        anchors.centerIn: parent
+                        width: 88; height: 88
+                        source: root._profileMeta.icon
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true; mipmap: true
+                        transformOrigin: Item.Center
+                        rotation: 0
+                    }
+
+                    // ── Spring pop (fires on every profile switch) ────────
+                    SequentialAnimation {
+                        id: iconPopAnim
+                        NumberAnimation {
+                            target: iconBox; property: "scale"
+                            from: 0.1; to: 1.12; duration: 280
+                            easing.type: Easing.OutBack; easing.overshoot: 1.8
+                        }
+                        NumberAnimation {
+                            target: iconBox; property: "scale"
+                            to: 1.0; duration: 120; easing.type: Easing.InOutQuad
+                        }
+                        ScriptAction { script: root.startProfileAnim() }
+                    }
+
+                    // ── PERFORMANCE: speedometer redline spin ─────────────
+                    // Fast acceleration then decelerate — needle hitting max RPM
+                    SequentialAnimation {
+                        id: perfSpinAnim
+                        // Rev hard: 0 → 1080° (3 full turns), fast accel with InQuart
+                        NumberAnimation {
+                            target: iconImg; property: "rotation"
+                            from: 0; to: 1080; duration: 700
+                            easing.type: Easing.InQuart
+                        }
+                        // Overshoot & settle: 1080 → 1110 then back to 1080
+                        NumberAnimation {
+                            target: iconImg; property: "rotation"
+                            to: 1110; duration: 160; easing.type: Easing.OutCubic
+                        }
+                        NumberAnimation {
+                            target: iconImg; property: "rotation"
+                            to: 1080; duration: 200; easing.type: Easing.InOutQuad
+                        }
+                    }
+
+                    // ── BALANCED: pendulum swing settle ───────────────────
+                    SequentialAnimation {
+                        id: balancedSwingAnim
+                        NumberAnimation { target: iconImg; property: "rotation"; from: -30; to: 30;  duration: 200; easing.type: Easing.OutCubic }
+                        NumberAnimation { target: iconImg; property: "rotation"; to: -18; duration: 160; easing.type: Easing.InOutSine }
+                        NumberAnimation { target: iconImg; property: "rotation"; to: 12;  duration: 130; easing.type: Easing.InOutSine }
+                        NumberAnimation { target: iconImg; property: "rotation"; to: -7;  duration: 100 }
+                        NumberAnimation { target: iconImg; property: "rotation"; to: 4;   duration: 80  }
+                        NumberAnimation { target: iconImg; property: "rotation"; to: 0;   duration: 120; easing.type: Easing.OutCubic }
+                    }
+
+                    // ── POWER SAVER: slow leaf-like breathe ───────────────
+                    SequentialAnimation {
+                        id: saverBreathAnim
+                        loops: 2
+                        NumberAnimation { target: iconBox; property: "scale"; to: 1.10; duration: 550; easing.type: Easing.InOutSine }
+                        NumberAnimation { target: iconBox; property: "scale"; to: 1.0;  duration: 550; easing.type: Easing.InOutSine }
+                    }
+                }
+
+                // ── Label ─────────────────────────────────────────────────
+                Column {
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: 4
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: "PROFILE SWITCHED"
+                        font { pixelSize: 9; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.6
+                        color: isDarkTheme ? "#606060" : "#888888"
+                    }
+                    Text {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        text: root._profileMeta.label
+                        font { pixelSize: 20; family: "Inter" }
+                        font.weight: Font.Bold
+                        color: root._profileMeta.accent
+                    }
+                }
+            }
+        }
+
+        // Fade-in → hold → fade-out
+        SequentialAnimation {
+            id: toastAnim
+            NumberAnimation { target: profileToast; property: "opacity"; to: 1.0; duration: 220; easing.type: Easing.OutCubic }
+            PauseAnimation  { duration: 2400 }
+            NumberAnimation { target: profileToast; property: "opacity"; to: 0.0; duration: 380; easing.type: Easing.InCubic }
+        }
+    }
+
+    // Trigger toast + animations on profile switch
+    Connections {
+        target: SettingsBackend
+        function onPowerProfileChanged() {
+            // Stop everything
+            toastAnim.stop()
+            iconPopAnim.stop()
+            perfSpinAnim.stop()
+            balancedSwingAnim.stop()
+            saverBreathAnim.stop()
+            // Reset state
+            profileToast.opacity = 0
+            iconBox.scale = 0.1
+            iconBox.opacity = 1.0
+            iconImg.rotation = 0
+            // Fire
+            toastAnim.start()
+            iconPopAnim.start()   // pop → ScriptAction fires startProfileAnim()
         }
     }
 }
