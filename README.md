@@ -28,22 +28,22 @@ A native Qt6/QML settings application for **ArchTitan OS** — a custom Arch Lin
 
 ## Universal Power Profile Toggle
 
-To ensure a seamless user experience across different hardware generations, the ArchTitan power management system utilizes a **universal stateful toggle shortcut**.
+To ensure a seamless user experience across different hardware generations, the power profile management system utilizes a **universal stateful toggle shortcut**.
 
 Instead of forcing users to memorize distinct key combinations for each individual power state, a single, repeatable action (**`Super + P`** or **`Fn + P`**) cycles through the system's power tiers sequentially:
 
-1. **First Press:** The system transitions into **Power Saver** mode to maximize battery longevity.
+1. **First Press:** The system transitions from its current state into **Power Saver** mode to maximize battery longevity.
 2. **Subsequent Press:** The system advances to **Balanced** mode for optimized, smart performance.
 3. **Following Press:** The system enters **Performance** mode to unlock maximum CPU and GPU output before looping back to Power Saver mode.
 
-By mapping the universal `Super` key alongside the hardware `Fn` key string, this cycling mechanism remains completely compatible with modern laptops as well as older keyboards that lack standard multimedia keys. 
+By mapping the universal `Super` key alongside the hardware `Fn` key string, this cycling mechanism remains completely compatible with modern laptops as well as older keyboards that lack standard multimedia keys.
 
 **Quick Summary:**
-* **Intuitive Stateful Cycling:** Users cycle through **Power Saver**, **Balanced**, and **Performance** profiles sequentially using a single shortcut combination.
-* **Universal Hardware Compatibility:** Binds to **`Super + P`** as a universal fallback for older desktop keyboards, while simultaneously supporting native **`Fn + P`** combinations.
+* **Intuitive Stateful Cycling:** Users can cycle through **Power Saver**, **Balanced**, and **Performance** profiles sequentially using a single shortcut combination.
+* **Universal Hardware Compatibility:** Binds to **`Super + P`** as a universal fallback for older desktop keyboards, while simultaneously supporting native **`Fn + P`** combinations on modern laptop configurations.
 * **Streamlined Control:** Eliminates keyboard clutter by removing the need for separate dedicated hotkeys for every unique power level.
 
-*(Note: See `scripts/cycle_power.sh` for the implementation logic to bind in your Sway/Hyprland config).*
+*(Note: See `scripts/cycle_power.sh` for the implementation logic to bind in your Hyprland config.)*
 
 ## Building
 

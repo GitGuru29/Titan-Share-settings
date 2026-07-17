@@ -360,25 +360,29 @@ bool SettingsBackend::applyPowerProfileDBus(const QString &profile)
 void SettingsBackend::onDBusPropertiesChanged(const QString &interface, const QVariantMap &changedProperties, const QStringList &invalidatedProperties)
 {
     Q_UNUSED(invalidatedProperties);
-    if (interface == QStringLiteral("net.hadess.PowerProfiles") || 
-        interface == QStringLiteral("org.freedesktop.UPower.PowerProfiles")) {
-        
-        if (changedProperties.contains(QStringLiteral("ActiveProfile"))) {
-            QString newProfile = changedProperties.value(QStringLiteral("ActiveProfile")).toString();
-            
-            // Map dbus value ("power-saver") back to UI value ("Power Saver")
-            QString uiProfile = QStringLiteral("Balanced");
-            if (newProfile == QStringLiteral("performance")) uiProfile = QStringLiteral("Performance");
-            else if (newProfile == QStringLiteral("power-saver")) uiProfile = QStringLiteral("Power Saver");
 
-            if (m_powerProfile != uiProfile) {
-                m_powerProfile = uiProfile;
-                // Update persistent settings but don't re-apply to DBus
-                m_settings.setValue("power/profile", m_powerProfile);
-                m_settings.sync();
-                emit powerProfileChanged();
-                qDebug() << "[SettingsBackend] Received external D-Bus power profile change:" << uiProfile;
-            }
-        }
+    // Log what interface name the daemon actually sends so we can debug
+    qDebug() << "[SettingsBackend] PropertiesChanged from interface:" << interface
+             << "keys:" << changedProperties.keys();
+
+    // Accept from any power profiles interface — covers both
+    // net.hadess.PowerProfiles and org.freedesktop.UPower.PowerProfiles
+    if (!changedProperties.contains(QStringLiteral("ActiveProfile"))) return;
+
+    QString newProfile = changedProperties.value(QStringLiteral("ActiveProfile")).toString();
+
+    // Map dbus value ("power-saver") back to UI value ("Power Saver")
+    QString uiProfile = QStringLiteral("Balanced");
+    if (newProfile == QStringLiteral("performance"))  uiProfile = QStringLiteral("Performance");
+    else if (newProfile == QStringLiteral("power-saver")) uiProfile = QStringLiteral("Power Saver");
+
+    qDebug() << "[SettingsBackend] External profile change detected:" << newProfile << "->" << uiProfile;
+
+    if (m_powerProfile != uiProfile) {
+        m_powerProfile = uiProfile;
+        m_settings.setValue("power/profile", m_powerProfile);
+        m_settings.sync();
+        emit powerProfileChanged();
     }
 }
+

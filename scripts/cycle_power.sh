@@ -1,30 +1,37 @@
 #!/usr/bin/env bash
 # cycle_power.sh
-# Cyclically switches the system power profile and triggers a D-Bus change
-# which archtitan-settings will pick up automatically (if active).
-# Sequence: Power Saver -> Balanced -> Performance -> Power Saver
+# Cycles: Power Saver -> Balanced -> Performance -> Power Saver
+# Uses net.hadess.PowerProfiles (confirmed working on this system)
 
-# Detect active power profiles service
-SERVICE="org.freedesktop.UPower.PowerProfiles"
-OBJ_PATH="/org/freedesktop/UPower/PowerProfiles"
-IFACE="org.freedesktop.UPower.PowerProfiles"
+CURRENT=$(busctl get-property net.hadess.PowerProfiles \
+    /net/hadess/PowerProfiles \
+    net.hadess.PowerProfiles \
+    ActiveProfile 2>/dev/null | awk -F'"' '{print $2}')
 
-if ! busctl status $SERVICE >/dev/null 2>&1; then
-    SERVICE="net.hadess.PowerProfiles"
-    OBJ_PATH="/net/hadess/PowerProfiles"
-    IFACE="net.hadess.PowerProfiles"
-fi
+# Debug — log to a temp file so we can verify it's reading correctly
+echo "[cycle_power] Current: '$CURRENT' at $(date)" >> /tmp/cycle_power.log
 
-# Read current profile via D-Bus directly
-CURRENT=$(busctl get-property $SERVICE $OBJ_PATH $IFACE ActiveProfile | cut -d'"' -f2)
+case "$CURRENT" in
+    "power-saver")
+        NEXT="balanced"
+        LABEL="Balanced"
+        ;;
+    "balanced")
+        NEXT="performance"
+        LABEL="Performance"
+        ;;
+    *)
+        # performance OR empty/unknown → go to power-saver
+        NEXT="power-saver"
+        LABEL="Power Saver"
+        ;;
+esac
 
-if [ "$CURRENT" = "power-saver" ]; then
-    busctl set-property $SERVICE $OBJ_PATH $IFACE ActiveProfile s "balanced"
-    notify-send -a "Power Manager" -i "power-profile-balanced" "Power Profile" "Switched to Balanced" -t 2000
-elif [ "$CURRENT" = "balanced" ]; then
-    busctl set-property $SERVICE $OBJ_PATH $IFACE ActiveProfile s "performance"
-    notify-send -a "Power Manager" -i "power-profile-performance" "Power Profile" "Switched to Performance" -t 2000
-else
-    busctl set-property $SERVICE $OBJ_PATH $IFACE ActiveProfile s "power-saver"
-    notify-send -a "Power Manager" -i "power-profile-power-saver" "Power Profile" "Switched to Power Saver" -t 2000
-fi
+echo "[cycle_power] Switching to: '$NEXT'" >> /tmp/cycle_power.log
+
+busctl set-property net.hadess.PowerProfiles \
+    /net/hadess/PowerProfiles \
+    net.hadess.PowerProfiles \
+    ActiveProfile s "$NEXT" 2>&1 | tee -a /tmp/cycle_power.log
+
+notify-send -a "Power Manager" "Power Profile" "Switched to $LABEL" -t 2000
