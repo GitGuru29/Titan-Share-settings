@@ -484,7 +484,7 @@ ScrollView {
                                     return "Replace"
                                 }
                                 font { pixelSize: 18; family: "Inter" }
-                                font.weight: Font.SemiBold
+                                font.weight: 600
                                 color: {
                                     var h = SystemInfo.batteryHealth
                                     if (h < 0) return root.textLow
