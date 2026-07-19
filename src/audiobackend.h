@@ -44,6 +44,7 @@ private slots:
 
 private:
     void installEqPresets();
+    void applyEqProfile(const QString &profile);
 
     QProcess m_monitorProcess;
     QProcess m_cavaProcess;
