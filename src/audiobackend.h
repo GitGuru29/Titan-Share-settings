@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QTimer>
+#include <QProcess>
 
 class AudioBackend : public QObject {
     Q_OBJECT
@@ -10,6 +11,8 @@ class AudioBackend : public QObject {
     Q_PROPERTY(int micVolume READ micVolume WRITE setMicVolume NOTIFY micVolumeChanged)
     Q_PROPERTY(bool micMuted READ micMuted WRITE setMicMuted NOTIFY micMutedChanged)
     Q_PROPERTY(QString activeOutput READ activeOutput NOTIFY activeOutputChanged)
+    Q_PROPERTY(QVariantList eqLevels READ eqLevels NOTIFY eqLevelsChanged)
+    Q_PROPERTY(QString activeEqProfile READ activeEqProfile WRITE setActiveEqProfile NOTIFY activeEqProfileChanged)
 
 public:
     explicit AudioBackend(QObject *parent = nullptr);
@@ -22,6 +25,9 @@ public:
     bool micMuted() const;
     void setMicMuted(bool v);
     QString activeOutput() const;
+    QVariantList eqLevels() const;
+    QString activeEqProfile() const;
+    void setActiveEqProfile(const QString &profile);
     Q_INVOKABLE void openMixer();
 
 signals:
@@ -30,15 +36,24 @@ signals:
     void micVolumeChanged();
     void micMutedChanged();
     void activeOutputChanged();
+    void eqLevelsChanged();
+    void activeEqProfileChanged();
 
 private slots:
     void sync();
 
 private:
-    QTimer m_timer;
+    void installEqPresets();
+    void applyEqProfile(const QString &profile);
+
+    QProcess m_monitorProcess;
+    QProcess m_cavaProcess;
+    QTimer m_debounceTimer;
     int m_masterVolume = 70;
     bool m_masterMuted = false;
     int m_micVolume = 80;
     bool m_micMuted = false;
     QString m_activeOutput;
+    QVariantList m_eqLevels;
+    QString m_activeEqProfile = "Flat";
 };
