@@ -1,5 +1,8 @@
 #include "audiobackend.h"
 #include <QProcess>
+#include <QFile>
+#include <QTextStream>
+#include <QVariant>
 
 AudioBackend::AudioBackend(QObject *parent) : QObject(parent) {
     m_debounceTimer.setSingleShot(true);
@@ -13,6 +16,35 @@ AudioBackend::AudioBackend(QObject *parent) : QObject(parent) {
     
     // Subscribe to PulseAudio/PipeWire events so we don't have to poll
     m_monitorProcess.start("pactl", {"subscribe"});
+
+    // Start cava for real-time equalizer
+    QFile cavaConf("/tmp/archtitan-cava.conf");
+    if (cavaConf.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+        QTextStream ts(&cavaConf);
+        ts << "[general]\nbars = 24\nframerate = 60\n"
+           << "[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\nascii_max_range = 100\n";
+        cavaConf.close();
+    }
+
+    connect(&m_cavaProcess, &QProcess::readyReadStandardOutput, this, [this]() {
+        while (m_cavaProcess.canReadLine()) {
+            QString line = QString::fromUtf8(m_cavaProcess.readLine()).trimmed();
+            if (line.isEmpty()) continue;
+            QStringList parts = line.split(';', Qt::SkipEmptyParts);
+            QVariantList levels;
+            for (const QString &p : parts) {
+                levels.append(p.toInt());
+            }
+            if (levels.size() == 24) {
+                m_eqLevels = levels;
+                emit eqLevelsChanged();
+            }
+        }
+    });
+    m_cavaProcess.start("cava", {"-p", "/tmp/archtitan-cava.conf"});
+
+    // Initialize 24 empty bars
+    for (int i=0; i<24; i++) m_eqLevels.append(0);
 
     sync();
 }
@@ -88,6 +120,8 @@ void AudioBackend::setMicMuted(bool v) {
 }
 
 QString AudioBackend::activeOutput() const { return m_activeOutput; }
+
+QVariantList AudioBackend::eqLevels() const { return m_eqLevels; }
 
 void AudioBackend::openMixer() {
     QProcess::startDetached("bash", {"-c", "pavucontrol &"});

@@ -174,23 +174,25 @@ ScrollView {
                             width: 12; height: 72
                             anchors.bottom: parent ? parent.bottom : undefined
 
-                            property real barH: 10 + (index * 13 % 46)
-
-                            SequentialAnimation on barH {
-                                running: !AudioBackend.masterMuted
-                                loops: Animation.Infinite
-                                NumberAnimation { to: 6 + (index * 3 % 42); duration: 300 + (index * 37 % 240); easing.type: Easing.InOutSine }
-                                NumberAnimation { to: 12 + (index * 7 % 44); duration: 260 + (index * 53 % 260); easing.type: Easing.InOutSine }
+                            property real targetH: {
+                                if (AudioBackend.masterMuted) return 3;
+                                var levels = AudioBackend.eqLevels;
+                                if (levels && levels.length > index) {
+                                    var val = levels[index];
+                                    return 6 + (val / 100.0) * 60; // scale 0-100 to 6-66px
+                                }
+                                return 6;
                             }
+                            
+                            Behavior on targetH { NumberAnimation { duration: 50; easing.type: Easing.OutQuad } }
 
                             Rectangle {
                                 anchors.bottom: parent.bottom
                                 width: parent.width
-                                height: AudioBackend.masterMuted ? 3 : parent.barH
+                                height: parent.targetH
                                 radius: 3
                                 color: root.accent
                                 opacity: 0.5 + (index / 24) * 0.4
-                                Behavior on height { NumberAnimation { duration: 100 } }
                             }
                         }
                     }
