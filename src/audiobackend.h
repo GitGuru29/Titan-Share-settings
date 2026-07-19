@@ -43,6 +43,8 @@ private slots:
     void sync();
 
 private:
+    void installEqPresets();
+
     QProcess m_monitorProcess;
     QProcess m_cavaProcess;
     QTimer m_debounceTimer;
