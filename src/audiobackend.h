@@ -1,6 +1,7 @@
 #pragma once
 #include <QObject>
 #include <QTimer>
+#include <QProcess>
 
 class AudioBackend : public QObject {
     Q_OBJECT
@@ -35,7 +36,8 @@ private slots:
     void sync();
 
 private:
-    QTimer m_timer;
+    QProcess m_monitorProcess;
+    QTimer m_debounceTimer;
     int m_masterVolume = 70;
     bool m_masterMuted = false;
     int m_micVolume = 80;

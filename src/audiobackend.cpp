@@ -2,9 +2,18 @@
 #include <QProcess>
 
 AudioBackend::AudioBackend(QObject *parent) : QObject(parent) {
-    m_timer.setInterval(2000);
-    connect(&m_timer, &QTimer::timeout, this, &AudioBackend::sync);
-    m_timer.start();
+    m_debounceTimer.setSingleShot(true);
+    m_debounceTimer.setInterval(50); // 50ms debounce
+    connect(&m_debounceTimer, &QTimer::timeout, this, &AudioBackend::sync);
+
+    connect(&m_monitorProcess, &QProcess::readyReadStandardOutput, this, [this]() {
+        m_monitorProcess.readAllStandardOutput(); // Clear buffer
+        m_debounceTimer.start(); // Restart debounce timer
+    });
+    
+    // Subscribe to PulseAudio/PipeWire events so we don't have to poll
+    m_monitorProcess.start("pactl", {"subscribe"});
+
     sync();
 }
 
