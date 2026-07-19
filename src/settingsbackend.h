@@ -105,4 +105,7 @@ private:
 
     void loadSettings();
     bool applyPowerProfileDBus(const QString &profile);
+
+private slots:
+    void onDBusPropertiesChanged(const QString &interface, const QVariantMap &changedProperties, const QStringList &invalidatedProperties);
 };

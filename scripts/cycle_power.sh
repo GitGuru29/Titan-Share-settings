@@ -1,19 +1,37 @@
 #!/usr/bin/env bash
 # cycle_power.sh
-# Cyclically switches the system power profile and triggers a D-Bus change
-# which archtitan-settings will pick up automatically (if active).
-# Sequence: Power Saver -> Balanced -> Performance -> Power Saver
+# Cycles: Power Saver -> Balanced -> Performance -> Power Saver
+# Uses net.hadess.PowerProfiles (confirmed working on this system)
 
-# Read current profile via D-Bus directly, bypassing powerprofilesctl
-CURRENT=$(busctl get-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile | cut -d'"' -f2)
+CURRENT=$(busctl get-property net.hadess.PowerProfiles \
+    /net/hadess/PowerProfiles \
+    net.hadess.PowerProfiles \
+    ActiveProfile 2>/dev/null | awk -F'"' '{print $2}')
 
-if [ "$CURRENT" = "power-saver" ]; then
-    busctl set-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile s "balanced"
-    notify-send -a "Power Manager" -i "power-profile-balanced" "Power Profile" "Switched to Balanced" -t 2000
-elif [ "$CURRENT" = "balanced" ]; then
-    busctl set-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile s "performance"
-    notify-send -a "Power Manager" -i "power-profile-performance" "Power Profile" "Switched to Performance" -t 2000
-else
-    busctl set-property net.hadess.PowerProfiles /net/hadess/PowerProfiles net.hadess.PowerProfiles ActiveProfile s "power-saver"
-    notify-send -a "Power Manager" -i "power-profile-power-saver" "Power Profile" "Switched to Power Saver" -t 2000
-fi
+# Debug — log to a temp file so we can verify it's reading correctly
+echo "[cycle_power] Current: '$CURRENT' at $(date)" >> /tmp/cycle_power.log
+
+case "$CURRENT" in
+    "power-saver")
+        NEXT="balanced"
+        LABEL="Balanced"
+        ;;
+    "balanced")
+        NEXT="performance"
+        LABEL="Performance"
+        ;;
+    *)
+        # performance OR empty/unknown → go to power-saver
+        NEXT="power-saver"
+        LABEL="Power Saver"
+        ;;
+esac
+
+echo "[cycle_power] Switching to: '$NEXT'" >> /tmp/cycle_power.log
+
+busctl set-property net.hadess.PowerProfiles \
+    /net/hadess/PowerProfiles \
+    net.hadess.PowerProfiles \
+    ActiveProfile s "$NEXT" 2>&1 | tee -a /tmp/cycle_power.log
+
+notify-send -a "Power Manager" "Power Profile" "Switched to $LABEL" -t 2000
