@@ -1,5 +1,6 @@
 #pragma once
 #include <QObject>
+#include <QTimer>
 
 class AudioBackend : public QObject {
     Q_OBJECT
@@ -30,7 +31,11 @@ signals:
     void micMutedChanged();
     void activeOutputChanged();
 
+private slots:
+    void sync();
+
 private:
+    QTimer m_timer;
     int m_masterVolume = 70;
     bool m_masterMuted = false;
     int m_micVolume = 80;
