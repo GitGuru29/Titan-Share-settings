@@ -23,3 +23,21 @@ ArchTitan Settings - Known Problems & Solutions
 6. Settings Persistence Issues
 - Problem: Changes to accent colors, icon themes, and fonts were resetting after closing the app or rebooting.
 - Solution: Debugged the `applyAndSave()` logic in `SettingsBackend` to ensure system-level persistence via `gsettings` and bound the UI design tokens directly to the backend properties so the UI reacts instantly.
+
+## Audio Section (Current Status & Pending Fixes)
+
+1. State Desynchronization
+- Problem: The UI does not reflect volume changes made externally (e.g., via keyboard media keys).
+- Solution: Implement a polling timer or DBus listener in `AudioBackend` to regularly check and sync the actual `wpctl` volume levels.
+
+2. Microphone Initialization
+- Problem: The app starts with microphone volume and mute state at default values (0, unmuted) because it doesn't query the system for the real state on startup.
+- Solution: Add startup initialization in the C++ constructor using `wpctl get-volume @DEFAULT_AUDIO_SOURCE@` to accurately reflect the actual microphone state.
+
+3. Audio Output Switching
+- Problem: The app displays the active output device name but doesn't allow the user to switch between available devices.
+- Solution: Parse `wpctl status` or `pactl list sinks` to get a list of available audio outputs and expose it to a QML dropdown.
+
+4. The "Fake" Equalizer Animation
+- Problem: The equalizer UI bars just bounce randomly in QML (a visual fake) rather than reacting to actual system audio playback.
+- Solution: (Optional/Future) Build an audio spectrum analyzer using `cava` (Console-based Audio Visualizer) output, or integrate a C++ audio analyzer that feeds real-time FFT frequency bands to the QML interface via a property.
