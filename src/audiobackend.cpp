@@ -123,6 +123,22 @@ QString AudioBackend::activeOutput() const { return m_activeOutput; }
 
 QVariantList AudioBackend::eqLevels() const { return m_eqLevels; }
 
+QString AudioBackend::activeEqProfile() const { return m_activeEqProfile; }
+
+void AudioBackend::setActiveEqProfile(const QString &profile) {
+    if (m_activeEqProfile == profile) return;
+    m_activeEqProfile = profile;
+    emit activeEqProfileChanged();
+    
+    // Attempt to apply via easyeffects if installed
+    // Flat usually means bypass or a "Flat" preset
+    if (profile == "Flat") {
+        QProcess::startDetached("bash", {"-c", "easyeffects -b 2>/dev/null"}); // Bypass
+    } else {
+        QProcess::startDetached("bash", {"-c", QString("easyeffects -l '%1' 2>/dev/null").arg(profile)});
+    }
+}
+
 void AudioBackend::openMixer() {
     QProcess::startDetached("bash", {"-c", "pavucontrol &"});
 }

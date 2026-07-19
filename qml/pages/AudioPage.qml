@@ -154,11 +154,56 @@ ScrollView {
 
         Item { height: 12 }
 
-        // ── EQ bars ──────────────────────────────────────────────
+        // ── Equalizer Profiles ───────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Equalizer Preview"
+            title: "Equalizer Profiles"
+
+            Flow {
+                Layout.fillWidth: true
+                spacing: 12
+
+                Repeater {
+                    model: ["Flat", "Bass Boost", "Vocal", "Electronic", "Acoustic"]
+                    delegate: Rectangle {
+                        height: 32
+                        width: profileLabel.implicitWidth + 32
+                        radius: 16
+                        property bool sel: AudioBackend.activeEqProfile === modelData
+                        color: sel
+                               ? (isDarkTheme ? Qt.tint(globalBg3, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.25))
+                                              : Qt.tint(globalBg3, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.15)))
+                               : globalBg4
+                        border.width: 1
+                        border.color: sel ? root.accent : globalBorder0
+                        Behavior on color { ColorAnimation { duration: 120 } }
+
+                        Text {
+                            id: profileLabel
+                            anchors.centerIn: parent
+                            text: modelData
+                            font { pixelSize: 12; family: "Inter" }
+                            font.weight: sel ? Font.DemiBold : Font.Normal
+                            color: sel ? root.textHigh : root.textMid
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                            onClicked: AudioBackend.activeEqProfile = modelData
+                        }
+                    }
+                }
+            }
+        }
+
+        Item { height: 12 }
+
+        // ── Audio Visualizer ─────────────────────────────────────
+        SettingsCard {
+            Layout.fillWidth: true
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            title: "Audio Visualizer"
 
             Item {
                 Layout.fillWidth: true
