@@ -204,30 +204,48 @@ void AudioBackend::applyEqProfile(const QString &profile) {
     ts << "    }\n";
     ts << "]\n";
 
-    // Write to ~/.config/pipewire/filter-chain.conf.d/
+    // Write config (for persistence on reboot)
     QString confDir = QDir::homePath() + "/.config/pipewire/filter-chain.conf.d";
     QDir().mkpath(confDir);
-    QString confPath = confDir + "/archtitan-eq.conf";
-
-    QFile file(confPath);
+    QFile file(confDir + "/archtitan-eq.conf");
     if (file.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
         file.write(config.toUtf8());
         file.close();
     }
 
-    // Reload PipeWire filter-chain and route all audio through the EQ sink
-    QProcess::startDetached("bash", {"-c",
-        // Step 1: restart filter-chain service to load new config
-        "systemctl --user restart filter-chain 2>/dev/null; "
-        // Step 2: wait briefly for the virtual sink to appear
-        "sleep 0.5; "
-        // Step 3: set EQ virtual sink as the default output
-        "pactl set-default-sink effect_input.archtitan_eq 2>/dev/null; "
-        // Step 4: move all currently playing streams through the EQ
-        "pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
-        "xargs -I{} pactl move-sink-input {} effect_input.archtitan_eq 2>/dev/null; "
-        "true"
-    });
+    // Build a script that updates each band's Gain LIVE via pw-cli set-param
+    // This avoids restarting the service — no audio gap
+    QString liveScript;
+    liveScript += "PW=$(pw-dump 2>/dev/null); ";
+    for (int i = 0; i < bands.size(); ++i) {
+        double gain = bands[i].gain;
+        liveScript += QString(
+            "ID=$(echo \"$PW\" | python3 -c \""
+            "import sys,json;"
+            "d=json.load(sys.stdin);"
+            "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"eq_band_%1\\\"]"
+            "\" 2>/dev/null | head -1); "
+            "[ -n \"$ID\" ] && pw-cli set-param $ID Props '{ params: [ \"Gain\" %2 ] }' 2>/dev/null; "
+        ).arg(i + 1).arg(gain, 0, 'f', 1);
+    }
+
+    // If nodes don't exist yet (first launch), start the service once and route audio
+    liveScript +=
+        "ID=$(echo \"$PW\" | python3 -c \""
+        "import sys,json;"
+        "d=json.load(sys.stdin);"
+        "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"eq_band_1\\\"]"
+        "\" 2>/dev/null | head -1); "
+        "if [ -z \"$ID\" ]; then "
+        "  systemctl --user start filter-chain 2>/dev/null; "
+        "  sleep 0.8; "
+        "  pactl set-default-sink effect_input.archtitan_eq 2>/dev/null; "
+        "  pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
+        "  xargs -I{} pactl move-sink-input {} effect_input.archtitan_eq 2>/dev/null; "
+        "fi; "
+        "true";
+
+    QProcess::startDetached("bash", {"-c", liveScript});
 }
 
 void AudioBackend::openMixer() {
