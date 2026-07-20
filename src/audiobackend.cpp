@@ -156,8 +156,12 @@ void AudioBackend::applyEqProfile(const QString &profile) {
 
     QList<Band> bands;
 
-    if (profile == "Flat") {
+    if (m_spatialAudio) {
+        // Paused: force Flat EQ when Spatial Audio is active to avoid interference
         bands = { {32,0},{64,0},{125,0},{250,0},{500,0},{1000,0},{2000,0},{4000,0},{8000,0},{16000,0} };
+    } else if (profile == "Flat") {
+        bands = { {32,0},{64,0},{125,0},{250,0},{500,0},{1000,0},{2000,0},{4000,0},{8000,0},{16000,0} };
+
     } else if (profile == "Bass Boost") {
         bands = { {32,6},{64,5},{125,3},{250,1},{500,0},{1000,0},{2000,0},{4000,0},{8000,0},{16000,0} };
     } else if (profile == "Vocal") {
@@ -241,33 +245,43 @@ void AudioBackend::applyEqProfile(const QString &profile) {
         file.close();
     }
 
-    // Build a script that updates the filter-chain's Gains LIVE via pw-cli set-param
-    // This avoids restarting the service — no audio gap
+    // ── Live gain update via pw-cli set-param ─────────────────────────────
+    // Replaces the slow pw-dump approach (which froze audio for 1-3s) with a
+    // fast pactl-based lookup: pactl list sinks only reads audio sinks, not the
+    // full PipeWire graph, so the ID lookup takes < 100ms.
     QString paramsList;
     for (int i = 0; i < bands.size(); ++i) {
         paramsList += QString(" \"eq_band_%1:Gain\" %2").arg(i + 1).arg(bands[i].gain, 0, 'f', 1);
     }
 
+    // Which sink should active streams ultimately play through?
+    // If spatial audio is ON, keep them on the spatial sink (which feeds into
+    // the EQ node downstream). If OFF, route directly to the EQ sink.
+    QString targetSink = m_spatialAudio
+        ? "effect_input.archtitan_spatial"
+        : "effect_input.archtitan_eq";
+
     QString liveScript = QString(
-        "PW=$(pw-dump 2>/dev/null); "
-        "ID=$(echo \"$PW\" | python3 -c \""
-        "import sys,json;"
-        "d=json.load(sys.stdin);"
-        "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"effect_input.archtitan_eq\\\"]"
-        "\" 2>/dev/null | head -1); "
+        // Fast node-ID lookup via pactl (reads only sink properties, not full graph)
+        "ID=$(pactl list sinks 2>/dev/null | "
+        "awk '/archtitan_eq/{f=1} f && /object\\.id/{gsub(/[^0-9]/,\"\"); print; exit}'); "
         "if [ -n \"$ID\" ]; then "
-        "  pw-cli set-param $ID Props '{ params: [%1 ] }' 2>/dev/null; "
+        // Apply new gains atomically — no audio gap
+        "  pw-cli set-param \"$ID\" Props '{ params: [%1 ] }' 2>/dev/null; "
+        "  pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
+        "  xargs -I{} pactl move-sink-input {} %2 2>/dev/null; "
         "else "
+        // EQ sink not loaded yet — start filter-chain and route
         "  systemctl --user start filter-chain 2>/dev/null; "
         "  sleep 0.8; "
-        "  pactl set-default-sink effect_input.archtitan_eq 2>/dev/null; "
         "  pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
-        "  xargs -I{} pactl move-sink-input {} effect_input.archtitan_eq 2>/dev/null; "
+        "  xargs -I{} pactl move-sink-input {} %2 2>/dev/null; "
         "fi; "
         "true"
-    ).arg(paramsList);
+    ).arg(paramsList, targetSink);
 
     QProcess::startDetached("bash", {"-c", liveScript});
+
 }
 
 void AudioBackend::openMixer() {
@@ -364,6 +378,7 @@ void AudioBackend::setSpatialAudio(bool enabled) {
     settings.setValue("audio/spatialAudio", enabled);
     settings.sync();
 
+    applyEqProfile(m_activeEqProfile);
     applySpatialAudio();
 }
 
