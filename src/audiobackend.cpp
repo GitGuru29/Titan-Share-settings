@@ -4,11 +4,26 @@
 #include <QTextStream>
 #include <QVariant>
 #include <QDir>
+#include <QSettings>
 
 AudioBackend::AudioBackend(QObject *parent) : QObject(parent) {
     m_debounceTimer.setSingleShot(true);
     m_debounceTimer.setInterval(50); // 50ms debounce
     connect(&m_debounceTimer, &QTimer::timeout, this, &AudioBackend::sync);
+
+    // Load custom gains from QSettings
+    QSettings settings("ArchTitan", "archtitan-settings");
+    m_customGains = settings.value("audio/customGains").toList();
+    if (m_customGains.size() != 10) {
+        m_customGains.clear();
+        for (int i = 0; i < 10; ++i) {
+            m_customGains.append(0.0);
+        }
+    }
+
+    // Load spatial audio settings from QSettings
+    m_spatialAudio = settings.value("audio/spatialAudio", false).toBool();
+    m_spatialWidth = settings.value("audio/spatialWidth", 80).toInt();
 
     installEqPresets();
 
@@ -151,6 +166,19 @@ void AudioBackend::applyEqProfile(const QString &profile) {
         bands = { {32,4},{64,4},{125,2},{250,0},{500,-2},{1000,-2},{2000,0},{4000,2},{8000,4},{16000,4} };
     } else if (profile == "Acoustic") {
         bands = { {32,0},{64,2},{125,2},{250,0},{500,0},{1000,0},{2000,2},{4000,2},{8000,2},{16000,0} };
+    } else if (profile == "Custom") {
+        bands = {
+            {32, m_customGains[0].toDouble()},
+            {64, m_customGains[1].toDouble()},
+            {125, m_customGains[2].toDouble()},
+            {250, m_customGains[3].toDouble()},
+            {500, m_customGains[4].toDouble()},
+            {1000, m_customGains[5].toDouble()},
+            {2000, m_customGains[6].toDouble()},
+            {4000, m_customGains[7].toDouble()},
+            {8000, m_customGains[8].toDouble()},
+            {16000, m_customGains[9].toDouble()}
+        };
     } else {
         return;
     }
@@ -213,37 +241,31 @@ void AudioBackend::applyEqProfile(const QString &profile) {
         file.close();
     }
 
-    // Build a script that updates each band's Gain LIVE via pw-cli set-param
+    // Build a script that updates the filter-chain's Gains LIVE via pw-cli set-param
     // This avoids restarting the service — no audio gap
-    QString liveScript;
-    liveScript += "PW=$(pw-dump 2>/dev/null); ";
+    QString paramsList;
     for (int i = 0; i < bands.size(); ++i) {
-        double gain = bands[i].gain;
-        liveScript += QString(
-            "ID=$(echo \"$PW\" | python3 -c \""
-            "import sys,json;"
-            "d=json.load(sys.stdin);"
-            "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"eq_band_%1\\\"]"
-            "\" 2>/dev/null | head -1); "
-            "[ -n \"$ID\" ] && pw-cli set-param $ID Props '{ params: [ \"Gain\" %2 ] }' 2>/dev/null; "
-        ).arg(i + 1).arg(gain, 0, 'f', 1);
+        paramsList += QString(" \"eq_band_%1:Gain\" %2").arg(i + 1).arg(bands[i].gain, 0, 'f', 1);
     }
 
-    // If nodes don't exist yet (first launch), start the service once and route audio
-    liveScript +=
+    QString liveScript = QString(
+        "PW=$(pw-dump 2>/dev/null); "
         "ID=$(echo \"$PW\" | python3 -c \""
         "import sys,json;"
         "d=json.load(sys.stdin);"
-        "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"eq_band_1\\\"]"
+        "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"effect_input.archtitan_eq\\\"]"
         "\" 2>/dev/null | head -1); "
-        "if [ -z \"$ID\" ]; then "
+        "if [ -n \"$ID\" ]; then "
+        "  pw-cli set-param $ID Props '{ params: [%1 ] }' 2>/dev/null; "
+        "else "
         "  systemctl --user start filter-chain 2>/dev/null; "
         "  sleep 0.8; "
         "  pactl set-default-sink effect_input.archtitan_eq 2>/dev/null; "
         "  pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
         "  xargs -I{} pactl move-sink-input {} effect_input.archtitan_eq 2>/dev/null; "
         "fi; "
-        "true";
+        "true"
+    ).arg(paramsList);
 
     QProcess::startDetached("bash", {"-c", liveScript});
 }
@@ -253,6 +275,233 @@ void AudioBackend::openMixer() {
 }
 
 void AudioBackend::installEqPresets() {
-    // Apply the default Flat profile on startup to ensure filter-chain is loaded
+    // Try to load the previously active profile from the written config file
+    QString confPath = QDir::homePath() + "/.config/pipewire/filter-chain.conf.d/archtitan-eq.conf";
+    QFile file(confPath);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+            if (line.startsWith("# Profile: ")) {
+                QString profile = line.mid(11).trimmed();
+                if (profile == "Flat" || profile == "Bass Boost" || profile == "Vocal" || profile == "Electronic" || profile == "Acoustic" || profile == "Custom") {
+                    m_activeEqProfile = profile;
+                }
+                break;
+            }
+        }
+        file.close();
+    }
+
+    // Apply the profile on startup to ensure filter-chain is loaded
     applyEqProfile(m_activeEqProfile);
+}
+
+QVariantList AudioBackend::customGains() const {
+    return m_customGains;
+}
+
+void AudioBackend::setCustomGains(const QVariantList &v) {
+    if (m_customGains == v) return;
+    m_customGains = v;
+    emit customGainsChanged();
+    if (m_activeEqProfile == "Custom") {
+        applyEqProfile("Custom");
+    }
+}
+
+void AudioBackend::setCustomBandGain(int index, double gain) {
+    if (index < 0 || index >= m_customGains.size()) return;
+    if (qFuzzyCompare(m_customGains[index].toDouble(), gain)) return;
+    
+    m_customGains[index] = gain;
+    emit customGainsChanged();
+    
+    // Save to settings
+    QSettings settings("ArchTitan", "archtitan-settings");
+    settings.setValue("audio/customGains", m_customGains);
+    settings.sync();
+
+    // If custom is selected, apply it live
+    if (m_activeEqProfile == "Custom") {
+        applyEqProfile("Custom");
+    }
+}
+
+void AudioBackend::resetCustomGains() {
+    bool changed = false;
+    for (int i = 0; i < m_customGains.size(); ++i) {
+        if (!qFuzzyCompare(m_customGains[i].toDouble(), 0.0)) {
+            m_customGains[i] = 0.0;
+            changed = true;
+        }
+    }
+    
+    if (changed) {
+        emit customGainsChanged();
+        
+        QSettings settings("ArchTitan", "archtitan-settings");
+        settings.setValue("audio/customGains", m_customGains);
+        settings.sync();
+
+        if (m_activeEqProfile == "Custom") {
+            applyEqProfile("Custom");
+        }
+    }
+}
+
+// ─── Spatial Audio ────────────────────────────────────────────────────────────
+
+bool AudioBackend::spatialAudio() const { return m_spatialAudio; }
+int  AudioBackend::spatialWidth()  const { return m_spatialWidth;  }
+
+void AudioBackend::setSpatialAudio(bool enabled) {
+    if (m_spatialAudio == enabled) return;
+    m_spatialAudio = enabled;
+    emit spatialAudioChanged();
+
+    QSettings settings("ArchTitan", "archtitan-settings");
+    settings.setValue("audio/spatialAudio", enabled);
+    settings.sync();
+
+    applySpatialAudio();
+}
+
+void AudioBackend::setSpatialWidth(int width) {
+    width = qBound(0, width, 100);
+    if (m_spatialWidth == width) return;
+    m_spatialWidth = width;
+    emit spatialWidthChanged();
+
+    QSettings settings("ArchTitan", "archtitan-settings");
+    settings.setValue("audio/spatialWidth", width);
+    settings.sync();
+
+    if (m_spatialAudio) applySpatialAudio();
+}
+
+void AudioBackend::applySpatialAudio() {
+    // ── Shared destroy snippet: tears down any existing spatial node ────────
+    // Uses pw-dump + python to find the node ID by description, then pw-cli destroy it.
+    const QString destroyScript =
+        "SPID=$(pw-dump 2>/dev/null | python3 -c \""
+        "import sys,json;"
+        "d=json.load(sys.stdin);"
+        "ns=[n for n in d if isinstance(n,dict) and"
+        " n.get('info',{}).get('props',{}).get('node.description','')=='ArchTitan Spatial'];"
+        "print(ns[0]['id'] if ns else '')"
+        "\"); "
+        "[ -n \"$SPID\" ] && pw-cli destroy \"$SPID\" 2>/dev/null; ";
+
+    if (!m_spatialAudio) {
+        // Reroute back to EQ sink first, then tear down the spatial node.
+        // No PipeWire restart — audio keeps playing the whole time.
+        QString script =
+            "pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
+            "xargs -I{} pactl move-sink-input {} effect_input.archtitan_eq 2>/dev/null; "
+            + destroyScript +
+            "# also persist: remove conf so it does not reload on next PW start\n"
+            "rm -f " + QDir::homePath() + "/.config/pipewire/filter-chain.conf.d/archtitan-spatial.conf; "
+            "true";
+        QProcess::startDetached("bash", {"-c", script});
+        return;
+    }
+
+    // ── Build the SPA-JSON args string for pw-cli load-module ──────────────
+    double crossGain  = (m_spatialWidth / 100.0) * 0.45;
+    double directGain = 1.0 - crossGain * 0.4;
+    // Fixed 10 ms Haas delay (480 samples @ 48 kHz) — consistent, audible width
+    // Width intensity is controlled purely via the mixer cross-gain.
+    const int delaySamples = 480;
+
+    // Write conf for persistence on reboot (PW loads it next session automatically)
+    QString confDir  = QDir::homePath() + "/.config/pipewire/filter-chain.conf.d";
+    QString confPath = confDir + "/archtitan-spatial.conf";
+    {
+        QString conf;
+        QTextStream tc(&conf);
+        tc << "# ArchTitan Spatial Audio — generated by ArchTitan Settings\n";
+        tc << "# Width: " << m_spatialWidth << "\n\n";
+        tc << "context.modules = [\n";
+        tc << "    { name = libpipewire-module-filter-chain\n";
+        tc << "        flags = [ nofail ]\n";
+        tc << "        args = {\n";
+        tc << "            node.description = \"ArchTitan Spatial\"\n";
+        tc << "            media.name       = \"ArchTitan Spatial\"\n";
+        tc << "            filter.graph = {\n";
+        tc << "                nodes = [\n";
+        tc << "                    { type=builtin label=copy  name=copyL }\n";
+        tc << "                    { type=builtin label=copy  name=copyR }\n";
+        tc << QString("                    { type=builtin label=delay name=delayL control={\"Max Delay\"=1.0 \"Delay\"=%1} }\n").arg(delaySamples);
+        tc << QString("                    { type=builtin label=delay name=delayR control={\"Max Delay\"=1.0 \"Delay\"=%1} }\n").arg(delaySamples);
+        tc << QString("                    { type=builtin label=mixer name=mixL control={\"Gain 1\"=%1 \"Gain 2\"=%2} }\n").arg(directGain,0,'f',4).arg(crossGain,0,'f',4);
+        tc << QString("                    { type=builtin label=mixer name=mixR control={\"Gain 1\"=%1 \"Gain 2\"=%2} }\n").arg(directGain,0,'f',4).arg(crossGain,0,'f',4);
+        tc << "                ]\n";
+        tc << "                links = [\n";
+        tc << "                    { output=\"copyL:Out\"  input=\"mixL:In 1\" }\n";
+        tc << "                    { output=\"copyR:Out\"  input=\"delayR:In\" }\n";
+        tc << "                    { output=\"delayR:Out\" input=\"mixL:In 2\" }\n";
+        tc << "                    { output=\"copyR:Out\"  input=\"mixR:In 1\" }\n";
+        tc << "                    { output=\"copyL:Out\"  input=\"delayL:In\" }\n";
+        tc << "                    { output=\"delayL:Out\" input=\"mixR:In 2\" }\n";
+        tc << "                ]\n";
+        tc << "                inputs  = [ \"copyL:In\" \"copyR:In\" ]\n";
+        tc << "                outputs = [ \"mixL:Out\" \"mixR:Out\" ]\n";
+        tc << "            }\n";
+        tc << "            audio.channels = 2\n";
+        tc << "            audio.position = [ FL FR ]\n";
+        tc << "            capture.props  = { node.name=\"effect_input.archtitan_spatial\"  media.class=Audio/Sink }\n";
+        tc << "            playback.props = { node.name=\"effect_output.archtitan_spatial\" node.passive=true }\n";
+        tc << "        }\n";
+        tc << "    }\n";
+        tc << "]\n";
+        QDir().mkpath(confDir);
+        QFile f(confPath);
+        if (f.open(QIODevice::WriteOnly | QIODevice::Truncate)) { f.write(conf.toUtf8()); f.close(); }
+    }
+
+    // ── Build the inline SPA-JSON for pw-cli load-module ───────────────────
+    // pw-cli load-module <name> '<spa-json-args>' loads the module live with no restart.
+    QString args = QString(
+        "{ node.description=\"ArchTitan Spatial\" media.name=\"ArchTitan Spatial\" "
+        "filter.graph={ "
+        "nodes=["
+        "{type=builtin label=copy  name=copyL}"
+        "{type=builtin label=copy  name=copyR}"
+        "{type=builtin label=delay name=delayL control={\"Max Delay\"=1.0 \"Delay\"=%1}}"
+        "{type=builtin label=delay name=delayR control={\"Max Delay\"=1.0 \"Delay\"=%1}}"
+        "{type=builtin label=mixer name=mixL control={\"Gain 1\"=%2 \"Gain 2\"=%3}}"
+        "{type=builtin label=mixer name=mixR control={\"Gain 1\"=%2 \"Gain 2\"=%3}}"
+        "] "
+        "links=["
+        "{output=\"copyL:Out\"  input=\"mixL:In 1\"}"
+        "{output=\"copyR:Out\"  input=\"delayR:In\"}"
+        "{output=\"delayR:Out\" input=\"mixL:In 2\"}"
+        "{output=\"copyR:Out\"  input=\"mixR:In 1\"}"
+        "{output=\"copyL:Out\"  input=\"delayL:In\"}"
+        "{output=\"delayL:Out\" input=\"mixR:In 2\"}"
+        "] "
+        "inputs=[\"copyL:In\" \"copyR:In\"] outputs=[\"mixL:Out\" \"mixR:Out\"]"
+        "} "
+        "audio.channels=2 audio.position=[FL FR] "
+        "capture.props={node.name=\"effect_input.archtitan_spatial\" media.class=Audio/Sink} "
+        "playback.props={node.name=\"effect_output.archtitan_spatial\" node.passive=true} "
+        "}"
+    ).arg(delaySamples)
+     .arg(directGain, 0, 'f', 4)
+     .arg(crossGain,  0, 'f', 4);
+
+    // 1. Destroy any pre-existing spatial node (width change case)
+    // 2. Load the new node via pw-cli (no PipeWire restart — audio keeps playing)
+    // 3. Wait briefly for the sink to register, then reroute sink-inputs
+    QString script =
+        destroyScript +
+        "sleep 0.15; "
+        "pw-cli load-module libpipewire-module-filter-chain '" + args + "' 2>/dev/null; "
+        "sleep 0.4; "
+        "pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
+        "xargs -I{} pactl move-sink-input {} effect_input.archtitan_spatial 2>/dev/null; "
+        "true";
+
+    QProcess::startDetached("bash", {"-c", script});
 }
