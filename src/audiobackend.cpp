@@ -35,14 +35,20 @@ AudioBackend::AudioBackend(QObject *parent) : QObject(parent) {
     // Subscribe to PulseAudio/PipeWire events so we don't have to poll
     m_monitorProcess.start("pactl", {"subscribe"});
 
-    // Start cava for real-time equalizer
-    QFile cavaConf("/tmp/archtitan-cava.conf");
-    if (cavaConf.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
-        QTextStream ts(&cavaConf);
-        ts << "[general]\nbars = 24\nframerate = 60\n"
-           << "[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\nascii_max_range = 100\n";
-        cavaConf.close();
-    }
+    // Start/Restart cava for real-time equalizer
+    auto startCava = [this]() {
+        m_cavaProcess.kill();
+        m_cavaProcess.waitForFinished(500);
+
+        QFile cavaConf("/tmp/archtitan-cava.conf");
+        if (cavaConf.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            QTextStream ts(&cavaConf);
+            ts << "[general]\nbars = 24\nframerate = 60\n"
+               << "[output]\nmethod = raw\nraw_target = /dev/stdout\ndata_format = ascii\nascii_max_range = 100\n";
+            cavaConf.close();
+        }
+        m_cavaProcess.start("cava", {"-p", "/tmp/archtitan-cava.conf"});
+    };
 
     connect(&m_cavaProcess, &QProcess::readyReadStandardOutput, this, [this]() {
         while (m_cavaProcess.canReadLine()) {
@@ -59,7 +65,14 @@ AudioBackend::AudioBackend(QObject *parent) : QObject(parent) {
             }
         }
     });
-    m_cavaProcess.start("cava", {"-p", "/tmp/archtitan-cava.conf"});
+
+    // Auto-restart Cava if it exits (e.g., when PipeWire service is restarted)
+    connect(&m_cavaProcess, QOverload<int, QProcess::ExitStatus>::of(&QProcess::finished), this, [this, startCava]() {
+        QTimer::singleShot(1000, this, startCava);
+    });
+
+    startCava();
+
 
     // Initialize 24 empty bars
     for (int i=0; i<24; i++) m_eqLevels.append(0);
@@ -495,15 +508,23 @@ void AudioBackend::applySpatialAudio() {
         }
     }
 
-    // ── Restart PipeWire to load the new conf, then route + resume ──────────
-    // PipeWire restart is the ONLY reliable way to load a new filter-chain module.
-    // We compensate for the brief audio gap by auto-resuming MPRIS players.
-    QProcess::startDetached("bash", {"-c",
-        "systemctl --user restart pipewire pipewire-pulse 2>/dev/null; "
-        "sleep 0.9; "
-        // Route all active sink-inputs through the new spatial sink
-        "pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
-        "xargs -I{} pactl move-sink-input {} effect_input.archtitan_spatial 2>/dev/null; "
+    // ── Restart PipeWire (only if node not active) or update parameters live ──
+    // Replaces the PipeWire service restart with a fast live update when just
+    // changing width/presets, making preset switching and slider moves gapless!
+    QString liveScript = QString(
+        "ID=$(pactl list sinks 2>/dev/null | "
+        "awk '/archtitan_spatial/{f=1} f && /object\\.id/{gsub(/[^0-9]/,\"\"); print; exit}'); "
+        "if [ -n \"$ID\" ]; then "
+        "  pw-cli set-param \"$ID\" Props '{ params: [ \"mixL:Gain 1\" %1 \"mixL:Gain 2\" %2 \"mixR:Gain 1\" %1 \"mixR:Gain 2\" %2 ] }' 2>/dev/null; "
+        "else "
+        "  systemctl --user restart pipewire pipewire-pulse 2>/dev/null; "
+        "  sleep 0.9; "
+        "  pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
+        "  xargs -I{} pactl move-sink-input {} effect_input.archtitan_spatial 2>/dev/null; "
         + resumeScript +
-        "true"});
+        "fi; "
+        "true"
+    ).arg(directGain, 0, 'f', 4).arg(crossGain, 0, 'f', 4);
+
+    QProcess::startDetached("bash", {"-c", liveScript});
 }
