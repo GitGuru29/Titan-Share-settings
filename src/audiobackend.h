@@ -34,6 +34,7 @@ public:
     QVariantList customGains() const;
     void setCustomGains(const QVariantList &v);
     Q_INVOKABLE void setCustomBandGain(int index, double gain);
+    Q_INVOKABLE void resetCustomGains();
 
 signals:
     void masterVolumeChanged();

@@ -323,3 +323,25 @@ void AudioBackend::setCustomBandGain(int index, double gain) {
         applyEqProfile("Custom");
     }
 }
+
+void AudioBackend::resetCustomGains() {
+    bool changed = false;
+    for (int i = 0; i < m_customGains.size(); ++i) {
+        if (!qFuzzyCompare(m_customGains[i].toDouble(), 0.0)) {
+            m_customGains[i] = 0.0;
+            changed = true;
+        }
+    }
+    
+    if (changed) {
+        emit customGainsChanged();
+        
+        QSettings settings("ArchTitan", "archtitan-settings");
+        settings.setValue("audio/customGains", m_customGains);
+        settings.sync();
+
+        if (m_activeEqProfile == "Custom") {
+            applyEqProfile("Custom");
+        }
+    }
+}

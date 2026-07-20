@@ -208,6 +208,25 @@ ScrollView {
             visible: AudioBackend.activeEqProfile === "Custom"
 
             RowLayout {
+                Layout.fillWidth: true
+                Layout.bottomMargin: 16
+                
+                Text {
+                    text: "Fine-tune individual frequency bands manually. Changes are applied live."
+                    font { pixelSize: 12; family: "Inter" }
+                    color: root.textMid
+                    Layout.fillWidth: true
+                }
+                
+                TitanButton {
+                    text: "Reset to Flat"
+                    primary: false
+                    Layout.preferredHeight: 28
+                    onClicked: AudioBackend.resetCustomGains()
+                }
+            }
+
+            RowLayout {
                 id: slidersRow
                 Layout.fillWidth: true
                 spacing: 6
