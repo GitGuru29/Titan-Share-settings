@@ -213,37 +213,31 @@ void AudioBackend::applyEqProfile(const QString &profile) {
         file.close();
     }
 
-    // Build a script that updates each band's Gain LIVE via pw-cli set-param
+    // Build a script that updates the filter-chain's Gains LIVE via pw-cli set-param
     // This avoids restarting the service — no audio gap
-    QString liveScript;
-    liveScript += "PW=$(pw-dump 2>/dev/null); ";
+    QString paramsList;
     for (int i = 0; i < bands.size(); ++i) {
-        double gain = bands[i].gain;
-        liveScript += QString(
-            "ID=$(echo \"$PW\" | python3 -c \""
-            "import sys,json;"
-            "d=json.load(sys.stdin);"
-            "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"eq_band_%1\\\"]"
-            "\" 2>/dev/null | head -1); "
-            "[ -n \"$ID\" ] && pw-cli set-param $ID Props '{ params: [ \"Gain\" %2 ] }' 2>/dev/null; "
-        ).arg(i + 1).arg(gain, 0, 'f', 1);
+        paramsList += QString(" \"eq_band_%1:Gain\" %2").arg(i + 1).arg(bands[i].gain, 0, 'f', 1);
     }
 
-    // If nodes don't exist yet (first launch), start the service once and route audio
-    liveScript +=
+    QString liveScript = QString(
+        "PW=$(pw-dump 2>/dev/null); "
         "ID=$(echo \"$PW\" | python3 -c \""
         "import sys,json;"
         "d=json.load(sys.stdin);"
-        "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"eq_band_1\\\"]"
+        "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"effect_input.archtitan_eq\\\"]"
         "\" 2>/dev/null | head -1); "
-        "if [ -z \"$ID\" ]; then "
+        "if [ -n \"$ID\" ]; then "
+        "  pw-cli set-param $ID Props '{ params: [%1 ] }' 2>/dev/null; "
+        "else "
         "  systemctl --user start filter-chain 2>/dev/null; "
         "  sleep 0.8; "
         "  pactl set-default-sink effect_input.archtitan_eq 2>/dev/null; "
         "  pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
         "  xargs -I{} pactl move-sink-input {} effect_input.archtitan_eq 2>/dev/null; "
         "fi; "
-        "true";
+        "true"
+    ).arg(paramsList);
 
     QProcess::startDetached("bash", {"-c", liveScript});
 }
@@ -253,6 +247,24 @@ void AudioBackend::openMixer() {
 }
 
 void AudioBackend::installEqPresets() {
-    // Apply the default Flat profile on startup to ensure filter-chain is loaded
+    // Try to load the previously active profile from the written config file
+    QString confPath = QDir::homePath() + "/.config/pipewire/filter-chain.conf.d/archtitan-eq.conf";
+    QFile file(confPath);
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        while (!in.atEnd()) {
+            QString line = in.readLine();
+            if (line.startsWith("# Profile: ")) {
+                QString profile = line.mid(11).trimmed();
+                if (profile == "Flat" || profile == "Bass Boost" || profile == "Vocal" || profile == "Electronic" || profile == "Acoustic") {
+                    m_activeEqProfile = profile;
+                }
+                break;
+            }
+        }
+        file.close();
+    }
+
+    // Apply the profile on startup to ensure filter-chain is loaded
     applyEqProfile(m_activeEqProfile);
 }
