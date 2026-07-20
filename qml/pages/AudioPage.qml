@@ -322,6 +322,131 @@ ScrollView {
 
         Item { height: 12 }
 
+        // ── Spatial Audio ─────────────────────────────────────────
+        SettingsCard {
+            Layout.fillWidth: true
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            title: "Spatial Audio"
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 0
+
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    spacing: 4
+
+                    Text {
+                        text: "Virtual Stereo Widening"
+                        font { pixelSize: 14; family: "Inter" }
+                        font.weight: Font.Medium
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Expands stereo image using a Haas-effect delay. Best experienced with headphones."
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                        wrapMode: Text.WordWrap
+                        Layout.fillWidth: true
+                    }
+                }
+
+                TitanSwitch {
+                    checked: AudioBackend.spatialAudio
+                    onCheckedChanged: AudioBackend.spatialAudio = checked
+                }
+            }
+
+            // Width control — only visible when spatial audio is on
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.topMargin: 16
+                spacing: 10
+                visible: AudioBackend.spatialAudio
+                opacity: AudioBackend.spatialAudio ? 1.0 : 0.0
+                Behavior on opacity { NumberAnimation { duration: 200 } }
+
+                RowLayout {
+                    Layout.fillWidth: true
+
+                    Text {
+                        text: "Width"
+                        font { pixelSize: 12; family: "Inter" }
+                        font.weight: Font.Medium
+                        color: root.textMid
+                    }
+
+                    Item { Layout.fillWidth: true }
+
+                    // Colourful width badge
+                    Rectangle {
+                        width: widthBadge.implicitWidth + 16
+                        height: 22; radius: 11
+                        color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.18)
+                        border.width: 1
+                        border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.4)
+
+                        Text {
+                            id: widthBadge
+                            anchors.centerIn: parent
+                            text: AudioBackend.spatialWidth + "%"
+                            font { pixelSize: 11; family: "Inter" }
+                            font.weight: Font.DemiBold
+                            color: root.accent
+                        }
+                    }
+                }
+
+                TitanSlider {
+                    Layout.fillWidth: true
+                    from: 0; to: 100; stepSize: 1
+                    value: AudioBackend.spatialWidth
+                    onMoved: AudioBackend.spatialWidth = value
+                }
+
+                // Width presets
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 8
+
+                    Repeater {
+                        model: [
+                            { label: "Subtle",  val: 30  },
+                            { label: "Natural", val: 60  },
+                            { label: "Wide",    val: 80  },
+                            { label: "Maximum", val: 100 }
+                        ]
+                        delegate: Rectangle {
+                            Layout.fillWidth: true
+                            height: 28; radius: 8
+                            property bool sel: AudioBackend.spatialWidth === modelData.val
+                            color: sel ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.2)
+                                       : globalBg4
+                            border.width: 1
+                            border.color: sel ? root.accent : globalBorder0
+                            Behavior on color { ColorAnimation { duration: 100 } }
+
+                            Text {
+                                anchors.centerIn: parent
+                                text: modelData.label
+                                font { pixelSize: 11; family: "Inter" }
+                                font.weight: sel ? Font.DemiBold : Font.Normal
+                                color: sel ? root.accent : root.textMid
+                            }
+
+                            MouseArea {
+                                anchors.fill: parent
+                                cursorShape: Qt.PointingHandCursor
+                                onClicked: AudioBackend.spatialWidth = modelData.val
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        Item { height: 12 }
+
         // ── Audio Visualizer ─────────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
