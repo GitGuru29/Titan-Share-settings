@@ -495,15 +495,23 @@ void AudioBackend::applySpatialAudio() {
         }
     }
 
-    // ── Restart PipeWire to load the new conf, then route + resume ──────────
-    // PipeWire restart is the ONLY reliable way to load a new filter-chain module.
-    // We compensate for the brief audio gap by auto-resuming MPRIS players.
-    QProcess::startDetached("bash", {"-c",
-        "systemctl --user restart pipewire pipewire-pulse 2>/dev/null; "
-        "sleep 0.9; "
-        // Route all active sink-inputs through the new spatial sink
-        "pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
-        "xargs -I{} pactl move-sink-input {} effect_input.archtitan_spatial 2>/dev/null; "
+    // ── Restart PipeWire (only if node not active) or update parameters live ──
+    // Replaces the PipeWire service restart with a fast live update when just
+    // changing width/presets, making preset switching and slider moves gapless!
+    QString liveScript = QString(
+        "ID=$(pactl list sinks 2>/dev/null | "
+        "awk '/archtitan_spatial/{f=1} f && /object\\.id/{gsub(/[^0-9]/,\"\"); print; exit}'); "
+        "if [ -n \"$ID\" ]; then "
+        "  pw-cli set-param \"$ID\" Props '{ params: [ \"mixL:Gain 1\" %1 \"mixL:Gain 2\" %2 \"mixR:Gain 1\" %1 \"mixR:Gain 2\" %2 ] }' 2>/dev/null; "
+        "else "
+        "  systemctl --user restart pipewire pipewire-pulse 2>/dev/null; "
+        "  sleep 0.9; "
+        "  pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
+        "  xargs -I{} pactl move-sink-input {} effect_input.archtitan_spatial 2>/dev/null; "
         + resumeScript +
-        "true"});
+        "fi; "
+        "true"
+    ).arg(directGain, 0, 'f', 4).arg(crossGain, 0, 'f', 4);
+
+    QProcess::startDetached("bash", {"-c", liveScript});
 }
