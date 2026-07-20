@@ -4,11 +4,22 @@
 #include <QTextStream>
 #include <QVariant>
 #include <QDir>
+#include <QSettings>
 
 AudioBackend::AudioBackend(QObject *parent) : QObject(parent) {
     m_debounceTimer.setSingleShot(true);
     m_debounceTimer.setInterval(50); // 50ms debounce
     connect(&m_debounceTimer, &QTimer::timeout, this, &AudioBackend::sync);
+
+    // Load custom gains from QSettings
+    QSettings settings("ArchTitan", "archtitan-settings");
+    m_customGains = settings.value("audio/customGains").toList();
+    if (m_customGains.size() != 10) {
+        m_customGains.clear();
+        for (int i = 0; i < 10; ++i) {
+            m_customGains.append(0.0);
+        }
+    }
 
     installEqPresets();
 
@@ -151,6 +162,19 @@ void AudioBackend::applyEqProfile(const QString &profile) {
         bands = { {32,4},{64,4},{125,2},{250,0},{500,-2},{1000,-2},{2000,0},{4000,2},{8000,4},{16000,4} };
     } else if (profile == "Acoustic") {
         bands = { {32,0},{64,2},{125,2},{250,0},{500,0},{1000,0},{2000,2},{4000,2},{8000,2},{16000,0} };
+    } else if (profile == "Custom") {
+        bands = {
+            {32, m_customGains[0].toDouble()},
+            {64, m_customGains[1].toDouble()},
+            {125, m_customGains[2].toDouble()},
+            {250, m_customGains[3].toDouble()},
+            {500, m_customGains[4].toDouble()},
+            {1000, m_customGains[5].toDouble()},
+            {2000, m_customGains[6].toDouble()},
+            {4000, m_customGains[7].toDouble()},
+            {8000, m_customGains[8].toDouble()},
+            {16000, m_customGains[9].toDouble()}
+        };
     } else {
         return;
     }
@@ -256,7 +280,7 @@ void AudioBackend::installEqPresets() {
             QString line = in.readLine();
             if (line.startsWith("# Profile: ")) {
                 QString profile = line.mid(11).trimmed();
-                if (profile == "Flat" || profile == "Bass Boost" || profile == "Vocal" || profile == "Electronic" || profile == "Acoustic") {
+                if (profile == "Flat" || profile == "Bass Boost" || profile == "Vocal" || profile == "Electronic" || profile == "Acoustic" || profile == "Custom") {
                     m_activeEqProfile = profile;
                 }
                 break;
@@ -267,4 +291,35 @@ void AudioBackend::installEqPresets() {
 
     // Apply the profile on startup to ensure filter-chain is loaded
     applyEqProfile(m_activeEqProfile);
+}
+
+QVariantList AudioBackend::customGains() const {
+    return m_customGains;
+}
+
+void AudioBackend::setCustomGains(const QVariantList &v) {
+    if (m_customGains == v) return;
+    m_customGains = v;
+    emit customGainsChanged();
+    if (m_activeEqProfile == "Custom") {
+        applyEqProfile("Custom");
+    }
+}
+
+void AudioBackend::setCustomBandGain(int index, double gain) {
+    if (index < 0 || index >= m_customGains.size()) return;
+    if (qFuzzyCompare(m_customGains[index].toDouble(), gain)) return;
+    
+    m_customGains[index] = gain;
+    emit customGainsChanged();
+    
+    // Save to settings
+    QSettings settings("ArchTitan", "archtitan-settings");
+    settings.setValue("audio/customGains", m_customGains);
+    settings.sync();
+
+    // If custom is selected, apply it live
+    if (m_activeEqProfile == "Custom") {
+        applyEqProfile("Custom");
+    }
 }

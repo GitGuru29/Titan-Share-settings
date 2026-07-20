@@ -13,6 +13,7 @@ class AudioBackend : public QObject {
     Q_PROPERTY(QString activeOutput READ activeOutput NOTIFY activeOutputChanged)
     Q_PROPERTY(QVariantList eqLevels READ eqLevels NOTIFY eqLevelsChanged)
     Q_PROPERTY(QString activeEqProfile READ activeEqProfile WRITE setActiveEqProfile NOTIFY activeEqProfileChanged)
+    Q_PROPERTY(QVariantList customGains READ customGains WRITE setCustomGains NOTIFY customGainsChanged)
 
 public:
     explicit AudioBackend(QObject *parent = nullptr);
@@ -30,6 +31,10 @@ public:
     void setActiveEqProfile(const QString &profile);
     Q_INVOKABLE void openMixer();
 
+    QVariantList customGains() const;
+    void setCustomGains(const QVariantList &v);
+    Q_INVOKABLE void setCustomBandGain(int index, double gain);
+
 signals:
     void masterVolumeChanged();
     void masterMutedChanged();
@@ -38,6 +43,7 @@ signals:
     void activeOutputChanged();
     void eqLevelsChanged();
     void activeEqProfileChanged();
+    void customGainsChanged();
 
 private slots:
     void sync();
@@ -56,4 +62,5 @@ private:
     QString m_activeOutput;
     QVariantList m_eqLevels;
     QString m_activeEqProfile = "Flat";
+    QVariantList m_customGains;
 };

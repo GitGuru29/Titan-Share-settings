@@ -165,7 +165,7 @@ ScrollView {
                 spacing: 12
 
                 Repeater {
-                    model: ["Flat", "Bass Boost", "Vocal", "Electronic", "Acoustic"]
+                    model: ["Flat", "Bass Boost", "Vocal", "Electronic", "Acoustic", "Custom"]
                     delegate: Rectangle {
                         height: 32
                         width: profileLabel.implicitWidth + 32
@@ -191,6 +191,110 @@ ScrollView {
                         MouseArea {
                             anchors.fill: parent; cursorShape: Qt.PointingHandCursor
                             onClicked: AudioBackend.activeEqProfile = modelData
+                        }
+                    }
+                }
+            }
+        }
+
+        Item { height: AudioBackend.activeEqProfile === "Custom" ? 12 : 0 }
+
+        // ── Custom Equalizer Sliders ─────────────────────────────
+        SettingsCard {
+            id: customEqCard
+            Layout.fillWidth: true
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            title: "Custom Equalizer Settings"
+            visible: AudioBackend.activeEqProfile === "Custom"
+
+            RowLayout {
+                id: slidersRow
+                Layout.fillWidth: true
+                spacing: 6
+                
+                Repeater {
+                    model: [
+                        { freq: "32Hz", index: 0 },
+                        { freq: "64Hz", index: 1 },
+                        { freq: "125Hz", index: 2 },
+                        { freq: "250Hz", index: 3 },
+                        { freq: "500Hz", index: 4 },
+                        { freq: "1kHz", index: 5 },
+                        { freq: "2kHz", index: 6 },
+                        { freq: "4kHz", index: 7 },
+                        { freq: "8kHz", index: 8 },
+                        { freq: "16kHz", index: 9 }
+                    ]
+                    
+                    delegate: ColumnLayout {
+                        Layout.fillWidth: true
+                        Layout.alignment: Qt.AlignHCenter
+                        spacing: 8
+                        
+                        Text {
+                            text: modelData.freq
+                            font { pixelSize: 10; family: "Inter" }
+                            font.weight: Font.Medium
+                            color: root.textLow
+                            Layout.alignment: Qt.AlignHCenter
+                        }
+                        
+                        Slider {
+                            id: eqSlider
+                            orientation: Qt.Vertical
+                            from: -12.0
+                            to: 12.0
+                            stepSize: 0.5
+                            value: AudioBackend.customGains[modelData.index] || 0.0
+                            onMoved: AudioBackend.setCustomBandGain(modelData.index, value)
+                            Layout.preferredHeight: 140
+                            Layout.alignment: Qt.AlignHCenter
+                            
+                            background: Rectangle {
+                                implicitWidth: 4
+                                implicitHeight: 140
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                color: globalBorder0
+                                radius: 2
+                                border.color: globalBorder1
+                                border.width: 1
+
+                                Rectangle {
+                                    anchors.centerIn: parent
+                                    width: 10; height: 1
+                                    color: globalBorder1
+                                }
+
+                                Rectangle {
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                    y: eqSlider.value >= 0 
+                                       ? parent.height / 2 - (eqSlider.value / 12.0) * (parent.height / 2)
+                                       : parent.height / 2
+                                    width: 4
+                                    height: Math.abs(eqSlider.value / 12.0) * (parent.height / 2)
+                                    color: root.accent
+                                    radius: 2
+                                }
+                            }
+
+                            handle: Rectangle {
+                                anchors.horizontalCenter: parent.horizontalCenter
+                                y: eqSlider.topPadding + (1 - eqSlider.visualPosition) * (eqSlider.availableHeight - height)
+                                width: 14; height: 14; radius: 7
+                                color: root.accent
+                                border.width: 1.5
+                                border.color: globalBg0
+                                scale: eqSlider.pressed ? 0.85 : 1.0
+                                Behavior on scale { NumberAnimation { duration: 80 } }
+                            }
+                        }
+                        
+                        Text {
+                            text: (eqSlider.value > 0 ? "+" : "") + eqSlider.value.toFixed(1)
+                            font { pixelSize: 9; family: "Inter" }
+                            font.weight: Font.DemiBold
+                            color: eqSlider.value === 0 ? root.textLow : root.accent
+                            Layout.alignment: Qt.AlignHCenter
                         }
                     }
                 }
