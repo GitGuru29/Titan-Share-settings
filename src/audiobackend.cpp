@@ -439,8 +439,8 @@ void AudioBackend::applySpatialAudio() {
     // At Width=80 (default): crossGain ≈ 0.52, directGain ≈ 0.79
     double crossGain  = (m_spatialWidth / 100.0) * 0.65;
     double directGain = 1.0 - crossGain * 0.32;
-    // 15 ms Haas delay at 48 kHz = 720 samples — clearly noticeable spatial cue
-    const int delaySamples = 720;
+    // 15 ms Haas delay (0.015 seconds) — clearly noticeable spatial cue
+    const double delaySec = 0.015;
 
     // ── Write filter-chain conf ─────────────────────────────────────────────
     {
@@ -460,10 +460,12 @@ void AudioBackend::applySpatialAudio() {
         tc << "                    { type = builtin label = copy  name = copyL }\n";
         tc << "                    { type = builtin label = copy  name = copyR }\n";
         // Haas delay: cross-channel — R delayed injected into L output and vice versa
-        tc << QString("                    { type = builtin label = delay name = delayR\n"
-                      "                        control = { \"Max Delay\" = 1.0 \"Delay\" = %1 } }\n").arg(delaySamples);
-        tc << QString("                    { type = builtin label = delay name = delayL\n"
-                      "                        control = { \"Max Delay\" = 1.0 \"Delay\" = %1 } }\n").arg(delaySamples);
+        tc << "                    { type = builtin label = delay name = delayR\n"
+              "                        config = { \"max-delay\" = 1.0 }\n"
+              "                        control = { \"Delay (s)\" = " << delaySec << " } }\n";
+        tc << "                    { type = builtin label = delay name = delayL\n"
+              "                        config = { \"max-delay\" = 1.0 }\n"
+              "                        control = { \"Delay (s)\" = " << delaySec << " } }\n";
         // Mixers: Out_L = direct_L + cross_R_delayed,  Out_R = direct_R + cross_L_delayed
         tc << QString("                    { type = builtin label = mixer name = mixL\n"
                       "                        control = { \"Gain 1\" = %1 \"Gain 2\" = %2 } }\n")
