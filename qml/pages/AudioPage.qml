@@ -158,7 +158,10 @@ ScrollView {
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Equalizer Profiles"
+            title: AudioBackend.spatialAudio ? "Equalizer Profiles (Paused)" : "Equalizer Profiles"
+            enabled: !AudioBackend.spatialAudio
+            opacity: AudioBackend.spatialAudio ? 0.4 : 1.0
+            Behavior on opacity { NumberAnimation { duration: 150 } }
 
             Flow {
                 Layout.fillWidth: true
@@ -204,8 +207,12 @@ ScrollView {
             id: customEqCard
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Custom Equalizer Settings"
+            title: AudioBackend.spatialAudio ? "Custom Equalizer Settings (Paused)" : "Custom Equalizer Settings"
             visible: AudioBackend.activeEqProfile === "Custom"
+            enabled: !AudioBackend.spatialAudio
+            opacity: AudioBackend.spatialAudio ? 0.4 : 1.0
+            Behavior on opacity { NumberAnimation { duration: 150 } }
+
 
             RowLayout {
                 Layout.fillWidth: true

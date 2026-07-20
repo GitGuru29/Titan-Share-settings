@@ -156,8 +156,12 @@ void AudioBackend::applyEqProfile(const QString &profile) {
 
     QList<Band> bands;
 
-    if (profile == "Flat") {
+    if (m_spatialAudio) {
+        // Paused: force Flat EQ when Spatial Audio is active to avoid interference
         bands = { {32,0},{64,0},{125,0},{250,0},{500,0},{1000,0},{2000,0},{4000,0},{8000,0},{16000,0} };
+    } else if (profile == "Flat") {
+        bands = { {32,0},{64,0},{125,0},{250,0},{500,0},{1000,0},{2000,0},{4000,0},{8000,0},{16000,0} };
+
     } else if (profile == "Bass Boost") {
         bands = { {32,6},{64,5},{125,3},{250,1},{500,0},{1000,0},{2000,0},{4000,0},{8000,0},{16000,0} };
     } else if (profile == "Vocal") {
@@ -241,33 +245,43 @@ void AudioBackend::applyEqProfile(const QString &profile) {
         file.close();
     }
 
-    // Build a script that updates the filter-chain's Gains LIVE via pw-cli set-param
-    // This avoids restarting the service — no audio gap
+    // ── Live gain update via pw-cli set-param ─────────────────────────────
+    // Replaces the slow pw-dump approach (which froze audio for 1-3s) with a
+    // fast pactl-based lookup: pactl list sinks only reads audio sinks, not the
+    // full PipeWire graph, so the ID lookup takes < 100ms.
     QString paramsList;
     for (int i = 0; i < bands.size(); ++i) {
         paramsList += QString(" \"eq_band_%1:Gain\" %2").arg(i + 1).arg(bands[i].gain, 0, 'f', 1);
     }
 
+    // Which sink should active streams ultimately play through?
+    // If spatial audio is ON, keep them on the spatial sink (which feeds into
+    // the EQ node downstream). If OFF, route directly to the EQ sink.
+    QString targetSink = m_spatialAudio
+        ? "effect_input.archtitan_spatial"
+        : "effect_input.archtitan_eq";
+
     QString liveScript = QString(
-        "PW=$(pw-dump 2>/dev/null); "
-        "ID=$(echo \"$PW\" | python3 -c \""
-        "import sys,json;"
-        "d=json.load(sys.stdin);"
-        "[print(n[\\\"id\\\"]) for n in d if n.get(\\\"info\\\",{}).get(\\\"props\\\",{}).get(\\\"node.name\\\")==\\\"effect_input.archtitan_eq\\\"]"
-        "\" 2>/dev/null | head -1); "
+        // Fast node-ID lookup via pactl (reads only sink properties, not full graph)
+        "ID=$(pactl list sinks 2>/dev/null | "
+        "awk '/archtitan_eq/{f=1} f && /object\\.id/{gsub(/[^0-9]/,\"\"); print; exit}'); "
         "if [ -n \"$ID\" ]; then "
-        "  pw-cli set-param $ID Props '{ params: [%1 ] }' 2>/dev/null; "
+        // Apply new gains atomically — no audio gap
+        "  pw-cli set-param \"$ID\" Props '{ params: [%1 ] }' 2>/dev/null; "
+        "  pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
+        "  xargs -I{} pactl move-sink-input {} %2 2>/dev/null; "
         "else "
+        // EQ sink not loaded yet — start filter-chain and route
         "  systemctl --user start filter-chain 2>/dev/null; "
         "  sleep 0.8; "
-        "  pactl set-default-sink effect_input.archtitan_eq 2>/dev/null; "
         "  pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
-        "  xargs -I{} pactl move-sink-input {} effect_input.archtitan_eq 2>/dev/null; "
+        "  xargs -I{} pactl move-sink-input {} %2 2>/dev/null; "
         "fi; "
         "true"
-    ).arg(paramsList);
+    ).arg(paramsList, targetSink);
 
     QProcess::startDetached("bash", {"-c", liveScript});
+
 }
 
 void AudioBackend::openMixer() {
@@ -364,6 +378,7 @@ void AudioBackend::setSpatialAudio(bool enabled) {
     settings.setValue("audio/spatialAudio", enabled);
     settings.sync();
 
+    applyEqProfile(m_activeEqProfile);
     applySpatialAudio();
 }
 
@@ -381,42 +396,40 @@ void AudioBackend::setSpatialWidth(int width) {
 }
 
 void AudioBackend::applySpatialAudio() {
-    // ── Shared destroy snippet: tears down any existing spatial node ────────
-    // Uses pw-dump + python to find the node ID by description, then pw-cli destroy it.
-    const QString destroyScript =
-        "SPID=$(pw-dump 2>/dev/null | python3 -c \""
-        "import sys,json;"
-        "d=json.load(sys.stdin);"
-        "ns=[n for n in d if isinstance(n,dict) and"
-        " n.get('info',{}).get('props',{}).get('node.description','')=='ArchTitan Spatial'];"
-        "print(ns[0]['id'] if ns else '')"
-        "\"); "
-        "[ -n \"$SPID\" ] && pw-cli destroy \"$SPID\" 2>/dev/null; ";
+    const QString confDir  = QDir::homePath() + "/.config/pipewire/filter-chain.conf.d";
+    const QString confPath = confDir + "/archtitan-spatial.conf";
+
+    // ── Shared auto-resume snippet ──────────────────────────────────────────
+    // After PipeWire restarts, media players that paused are resumed via MPRIS.
+    const QString resumeScript =
+        "sleep 0.1; "
+        "for p in $(playerctl -l 2>/dev/null); do "
+        "  playerctl -p \"$p\" play 2>/dev/null; "
+        "done; ";
 
     if (!m_spatialAudio) {
-        // Reroute back to EQ sink first, then tear down the spatial node.
-        // No PipeWire restart — audio keeps playing the whole time.
-        QString script =
+        // Remove conf so the spatial sink is gone on next (and this) PipeWire start.
+        QFile::remove(confPath);
+        QProcess::startDetached("bash", {"-c",
+            "systemctl --user restart pipewire pipewire-pulse 2>/dev/null; "
+            "sleep 0.9; "
+            // Route back to EQ sink
             "pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
             "xargs -I{} pactl move-sink-input {} effect_input.archtitan_eq 2>/dev/null; "
-            + destroyScript +
-            "# also persist: remove conf so it does not reload on next PW start\n"
-            "rm -f " + QDir::homePath() + "/.config/pipewire/filter-chain.conf.d/archtitan-spatial.conf; "
-            "true";
-        QProcess::startDetached("bash", {"-c", script});
+            + resumeScript +
+            "true"});
         return;
     }
 
-    // ── Build the SPA-JSON args string for pw-cli load-module ──────────────
-    double crossGain  = (m_spatialWidth / 100.0) * 0.45;
-    double directGain = 1.0 - crossGain * 0.4;
-    // Fixed 10 ms Haas delay (480 samples @ 48 kHz) — consistent, audible width
-    // Width intensity is controlled purely via the mixer cross-gain.
-    const int delaySamples = 480;
+    // ── Compute gains ───────────────────────────────────────────────────────
+    // Width 0–100 → crossGain 0.0–0.65  (strong, clearly audible Haas cross-feed)
+    // At Width=80 (default): crossGain ≈ 0.52, directGain ≈ 0.79
+    double crossGain  = (m_spatialWidth / 100.0) * 0.65;
+    double directGain = 1.0 - crossGain * 0.32;
+    // 15 ms Haas delay at 48 kHz = 720 samples — clearly noticeable spatial cue
+    const int delaySamples = 720;
 
-    // Write conf for persistence on reboot (PW loads it next session automatically)
-    QString confDir  = QDir::homePath() + "/.config/pipewire/filter-chain.conf.d";
-    QString confPath = confDir + "/archtitan-spatial.conf";
+    // ── Write filter-chain conf ─────────────────────────────────────────────
     {
         QString conf;
         QTextStream tc(&conf);
@@ -430,78 +443,67 @@ void AudioBackend::applySpatialAudio() {
         tc << "            media.name       = \"ArchTitan Spatial\"\n";
         tc << "            filter.graph = {\n";
         tc << "                nodes = [\n";
-        tc << "                    { type=builtin label=copy  name=copyL }\n";
-        tc << "                    { type=builtin label=copy  name=copyR }\n";
-        tc << QString("                    { type=builtin label=delay name=delayL control={\"Max Delay\"=1.0 \"Delay\"=%1} }\n").arg(delaySamples);
-        tc << QString("                    { type=builtin label=delay name=delayR control={\"Max Delay\"=1.0 \"Delay\"=%1} }\n").arg(delaySamples);
-        tc << QString("                    { type=builtin label=mixer name=mixL control={\"Gain 1\"=%1 \"Gain 2\"=%2} }\n").arg(directGain,0,'f',4).arg(crossGain,0,'f',4);
-        tc << QString("                    { type=builtin label=mixer name=mixR control={\"Gain 1\"=%1 \"Gain 2\"=%2} }\n").arg(directGain,0,'f',4).arg(crossGain,0,'f',4);
+        // Pass-through copies so we can fan-out L to both direct and delay paths
+        tc << "                    { type = builtin label = copy  name = copyL }\n";
+        tc << "                    { type = builtin label = copy  name = copyR }\n";
+        // Haas delay: cross-channel — R delayed injected into L output and vice versa
+        tc << QString("                    { type = builtin label = delay name = delayR\n"
+                      "                        control = { \"Max Delay\" = 1.0 \"Delay\" = %1 } }\n").arg(delaySamples);
+        tc << QString("                    { type = builtin label = delay name = delayL\n"
+                      "                        control = { \"Max Delay\" = 1.0 \"Delay\" = %1 } }\n").arg(delaySamples);
+        // Mixers: Out_L = direct_L + cross_R_delayed,  Out_R = direct_R + cross_L_delayed
+        tc << QString("                    { type = builtin label = mixer name = mixL\n"
+                      "                        control = { \"Gain 1\" = %1 \"Gain 2\" = %2 } }\n")
+              .arg(directGain, 0, 'f', 4).arg(crossGain, 0, 'f', 4);
+        tc << QString("                    { type = builtin label = mixer name = mixR\n"
+                      "                        control = { \"Gain 1\" = %1 \"Gain 2\" = %2 } }\n")
+              .arg(directGain, 0, 'f', 4).arg(crossGain, 0, 'f', 4);
         tc << "                ]\n";
         tc << "                links = [\n";
-        tc << "                    { output=\"copyL:Out\"  input=\"mixL:In 1\" }\n";
-        tc << "                    { output=\"copyR:Out\"  input=\"delayR:In\" }\n";
-        tc << "                    { output=\"delayR:Out\" input=\"mixL:In 2\" }\n";
-        tc << "                    { output=\"copyR:Out\"  input=\"mixR:In 1\" }\n";
-        tc << "                    { output=\"copyL:Out\"  input=\"delayL:In\" }\n";
-        tc << "                    { output=\"delayL:Out\" input=\"mixR:In 2\" }\n";
+        // Direct path
+        tc << "                    { output = \"copyL:Out\"  input = \"mixL:In 1\" }\n";
+        tc << "                    { output = \"copyR:Out\"  input = \"mixR:In 1\" }\n";
+        // Cross-feed path: R → delay → into L mixer (creates width on left ear)
+        tc << "                    { output = \"copyR:Out\"  input = \"delayR:In\" }\n";
+        tc << "                    { output = \"delayR:Out\" input = \"mixL:In 2\" }\n";
+        // Cross-feed path: L → delay → into R mixer (creates width on right ear)
+        tc << "                    { output = \"copyL:Out\"  input = \"delayL:In\" }\n";
+        tc << "                    { output = \"delayL:Out\" input = \"mixR:In 2\" }\n";
         tc << "                ]\n";
         tc << "                inputs  = [ \"copyL:In\" \"copyR:In\" ]\n";
         tc << "                outputs = [ \"mixL:Out\" \"mixR:Out\" ]\n";
         tc << "            }\n";
         tc << "            audio.channels = 2\n";
         tc << "            audio.position = [ FL FR ]\n";
-        tc << "            capture.props  = { node.name=\"effect_input.archtitan_spatial\"  media.class=Audio/Sink }\n";
-        tc << "            playback.props = { node.name=\"effect_output.archtitan_spatial\" node.passive=true }\n";
+        tc << "            capture.props = {\n";
+        tc << "                node.name   = \"effect_input.archtitan_spatial\"\n";
+        tc << "                media.class = Audio/Sink\n";
+        tc << "            }\n";
+        tc << "            playback.props = {\n";
+        tc << "                node.name    = \"effect_output.archtitan_spatial\"\n";
+        tc << "                node.passive = true\n";
+        tc << "            }\n";
         tc << "        }\n";
         tc << "    }\n";
         tc << "]\n";
+
         QDir().mkpath(confDir);
         QFile f(confPath);
-        if (f.open(QIODevice::WriteOnly | QIODevice::Truncate)) { f.write(conf.toUtf8()); f.close(); }
+        if (f.open(QIODevice::WriteOnly | QIODevice::Truncate)) {
+            f.write(conf.toUtf8());
+            f.close();
+        }
     }
 
-    // ── Build the inline SPA-JSON for pw-cli load-module ───────────────────
-    // pw-cli load-module <name> '<spa-json-args>' loads the module live with no restart.
-    QString args = QString(
-        "{ node.description=\"ArchTitan Spatial\" media.name=\"ArchTitan Spatial\" "
-        "filter.graph={ "
-        "nodes=["
-        "{type=builtin label=copy  name=copyL}"
-        "{type=builtin label=copy  name=copyR}"
-        "{type=builtin label=delay name=delayL control={\"Max Delay\"=1.0 \"Delay\"=%1}}"
-        "{type=builtin label=delay name=delayR control={\"Max Delay\"=1.0 \"Delay\"=%1}}"
-        "{type=builtin label=mixer name=mixL control={\"Gain 1\"=%2 \"Gain 2\"=%3}}"
-        "{type=builtin label=mixer name=mixR control={\"Gain 1\"=%2 \"Gain 2\"=%3}}"
-        "] "
-        "links=["
-        "{output=\"copyL:Out\"  input=\"mixL:In 1\"}"
-        "{output=\"copyR:Out\"  input=\"delayR:In\"}"
-        "{output=\"delayR:Out\" input=\"mixL:In 2\"}"
-        "{output=\"copyR:Out\"  input=\"mixR:In 1\"}"
-        "{output=\"copyL:Out\"  input=\"delayL:In\"}"
-        "{output=\"delayL:Out\" input=\"mixR:In 2\"}"
-        "] "
-        "inputs=[\"copyL:In\" \"copyR:In\"] outputs=[\"mixL:Out\" \"mixR:Out\"]"
-        "} "
-        "audio.channels=2 audio.position=[FL FR] "
-        "capture.props={node.name=\"effect_input.archtitan_spatial\" media.class=Audio/Sink} "
-        "playback.props={node.name=\"effect_output.archtitan_spatial\" node.passive=true} "
-        "}"
-    ).arg(delaySamples)
-     .arg(directGain, 0, 'f', 4)
-     .arg(crossGain,  0, 'f', 4);
-
-    // 1. Destroy any pre-existing spatial node (width change case)
-    // 2. Load the new node via pw-cli (no PipeWire restart — audio keeps playing)
-    // 3. Wait briefly for the sink to register, then reroute sink-inputs
-    QString script =
-        destroyScript +
-        "sleep 0.15; "
-        "pw-cli load-module libpipewire-module-filter-chain '" + args + "' 2>/dev/null; "
-        "sleep 0.4; "
+    // ── Restart PipeWire to load the new conf, then route + resume ──────────
+    // PipeWire restart is the ONLY reliable way to load a new filter-chain module.
+    // We compensate for the brief audio gap by auto-resuming MPRIS players.
+    QProcess::startDetached("bash", {"-c",
+        "systemctl --user restart pipewire pipewire-pulse 2>/dev/null; "
+        "sleep 0.9; "
+        // Route all active sink-inputs through the new spatial sink
         "pactl list short sink-inputs 2>/dev/null | awk '{print $1}' | "
         "xargs -I{} pactl move-sink-input {} effect_input.archtitan_spatial 2>/dev/null; "
-        "true";
-
-    QProcess::startDetached("bash", {"-c", script});
+        + resumeScript +
+        "true"});
 }
