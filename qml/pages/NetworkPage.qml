@@ -301,12 +301,18 @@ Item {
                             property real downloadBps: NetworkManager.downloadSpeedBps
                             property real uploadBps: NetworkManager.uploadSpeedBps
 
-                            // Logarithmic scale normalization up to ~100 MB/s
+                            // Logarithmic scale normalization (5 KB/s to 50 MB/s dynamic range)
                             property real totalBps: downloadBps + uploadBps
-                            property real speedRatio: Math.min(1.0, Math.log10(1 + totalBps / (1024 * 1024)) / 2.0)
+                            property real speedRatio: Math.min(1.0, Math.log10(1 + totalBps / 5000.0) / 4.0)
 
                             Behavior on speedRatio { NumberAnimation { duration: 300 } }
                             onSpeedRatioChanged: requestPaint()
+
+                            Connections {
+                                target: NetworkManager
+                                function onDownloadSpeedChanged() { speedometerCanvas.requestPaint() }
+                                function onUploadSpeedChanged() { speedometerCanvas.requestPaint() }
+                            }
 
                             onPaint: {
                                 var ctx = getContext("2d");
