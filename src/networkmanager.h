@@ -38,6 +38,13 @@ class NetworkManager : public QObject {
     Q_PROPERTY(bool isConnecting READ isConnecting NOTIFY isConnectingChanged)
     Q_PROPERTY(QString connectingSsid READ connectingSsid NOTIFY connectingSsidChanged)
 
+    // Speedometer & Ping Properties
+    Q_PROPERTY(QString uploadSpeed READ uploadSpeed NOTIFY uploadSpeedChanged)
+    Q_PROPERTY(QString downloadSpeed READ downloadSpeed NOTIFY downloadSpeedChanged)
+    Q_PROPERTY(double uploadSpeedBps READ uploadSpeedBps NOTIFY uploadSpeedChanged)
+    Q_PROPERTY(double downloadSpeedBps READ downloadSpeedBps NOTIFY downloadSpeedChanged)
+    Q_PROPERTY(int pingMs READ pingMs NOTIFY pingMsChanged)
+
 public:
     explicit NetworkManager(QObject *parent = nullptr);
 
@@ -66,6 +73,12 @@ public:
     bool isScanning() const;
     bool isConnecting() const;
     QString connectingSsid() const;
+
+    QString uploadSpeed() const;
+    QString downloadSpeed() const;
+    double uploadSpeedBps() const;
+    double downloadSpeedBps() const;
+    int pingMs() const;
 
     Q_INVOKABLE void refreshStatus();
     Q_INVOKABLE void scanNetworks();
@@ -100,8 +113,15 @@ signals:
     void isConnectingChanged();
     void connectingSsidChanged();
 
+    void uploadSpeedChanged();
+    void downloadSpeedChanged();
+    void pingMsChanged();
+
     void connectionSuccess(const QString &ssid);
     void connectionError(const QString &message);
+
+private slots:
+    void updateSpeedAndPing();
 
 private:
     bool m_wifiEnabled = true;
@@ -129,6 +149,21 @@ private:
     bool m_isConnecting = false;
     QString m_connectingSsid;
 
+    QString m_uploadSpeed = "0 B/s";
+    QString m_downloadSpeed = "0 B/s";
+    double m_uploadSpeedBps = 0.0;
+    double m_downloadSpeedBps = 0.0;
+    int m_pingMs = -1;
+
+    qint64 m_prevRxBytes = 0;
+    qint64 m_prevTxBytes = 0;
+    qint64 m_lastSpeedTimeMs = 0;
+
     QTimer *m_pollTimer = nullptr;
+    QTimer *m_speedTimer = nullptr;
+    bool m_isCheckingPing = false;
+
+    QString formatBytesPerSec(double bytesPerSec) const;
 };
+
 

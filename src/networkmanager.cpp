@@ -5,6 +5,10 @@
 #include <QClipboard>
 #include <QSet>
 #include <QDebug>
+#include <QFile>
+#include <QTextStream>
+#include <QDateTime>
+#include <algorithm>
 
 NetworkManager::NetworkManager(QObject *parent) : QObject(parent) {
     refreshStatus();
@@ -14,19 +18,37 @@ NetworkManager::NetworkManager(QObject *parent) : QObject(parent) {
     m_pollTimer = new QTimer(this);
     connect(m_pollTimer, &QTimer::timeout, this, &NetworkManager::refreshStatus);
     m_pollTimer->start(3000);
+
+    // Periodic speed & ping timer every 1 second
+    m_speedTimer = new QTimer(this);
+    connect(m_speedTimer, &QTimer::timeout, this, &NetworkManager::updateSpeedAndPing);
+    m_speedTimer->start(1000);
 }
 
 void NetworkManager::refreshStatus() {
     // 1. Wi-Fi status & active SSID
     QProcess wifiProc;
-    wifiProc.start("bash", {"-c", "nmcli -t -f NAME,TYPE,STATE con show --active 2>/dev/null | grep wifi"});
+    wifiProc.start("bash", {"-c", "nmcli -g DEVICE,TYPE,STATE,CONNECTION dev status 2>/dev/null | grep ':wifi:connected:'"});
     wifiProc.waitForFinished(1500);
     QString wifiOut = wifiProc.readAllStandardOutput().trimmed();
+
+    if (wifiOut.isEmpty()) {
+        // Fallback to active connection show if dev status returned empty
+        QProcess wifiProc2;
+        wifiProc2.start("bash", {"-c", "nmcli -t -f NAME,TYPE,STATE con show --active 2>/dev/null | grep -iE 'wireless|wifi'"});
+        wifiProc2.waitForFinished(1000);
+        wifiOut = wifiProc2.readAllStandardOutput().trimmed();
+    }
 
     QString newConnectedSsid;
     bool newIsConnected = false;
     if (!wifiOut.isEmpty()) {
-        newConnectedSsid = wifiOut.split(':').value(0);
+        QStringList parts = wifiOut.split(':');
+        if (parts.size() >= 4 && !parts[3].trimmed().isEmpty()) {
+            newConnectedSsid = parts[3].trimmed();
+        } else {
+            newConnectedSsid = parts.value(0).trimmed();
+        }
         newIsConnected = true;
     }
 
@@ -246,6 +268,114 @@ bool NetworkManager::isScanning() const { return m_isScanning; }
 bool NetworkManager::isConnecting() const { return m_isConnecting; }
 QString NetworkManager::connectingSsid() const { return m_connectingSsid; }
 
+QString NetworkManager::uploadSpeed() const { return m_uploadSpeed; }
+QString NetworkManager::downloadSpeed() const { return m_downloadSpeed; }
+double NetworkManager::uploadSpeedBps() const { return m_uploadSpeedBps; }
+double NetworkManager::downloadSpeedBps() const { return m_downloadSpeedBps; }
+int NetworkManager::pingMs() const { return m_pingMs; }
+
+QString NetworkManager::formatBytesPerSec(double bytesPerSec) const {
+    if (bytesPerSec < 1024.0) {
+        return QString::number(bytesPerSec, 'f', 0) + " B/s";
+    } else if (bytesPerSec < 1024.0 * 1024.0) {
+        return QString::number(bytesPerSec / 1024.0, 'f', 1) + " KB/s";
+    } else if (bytesPerSec < 1024.0 * 1024.0 * 1024.0) {
+        return QString::number(bytesPerSec / (1024.0 * 1024.0), 'f', 1) + " MB/s";
+    } else {
+        return QString::number(bytesPerSec / (1024.0 * 1024.0 * 1024.0), 'f', 2) + " GB/s";
+    }
+}
+
+void NetworkManager::updateSpeedAndPing() {
+    // 1. Calculate Upload & Download speed from /proc/net/dev
+    qint64 totalRxBytes = 0;
+    qint64 totalTxBytes = 0;
+
+    QFile file("/proc/net/dev");
+    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
+        QTextStream in(&file);
+        while (!in.atEnd()) {
+            QString line = in.readLine().trimmed();
+            if (line.isEmpty() || line.startsWith("Inter-") || line.startsWith("face")) continue;
+
+            int colonIdx = line.indexOf(':');
+            if (colonIdx == -1) continue;
+
+            QString ifaceName = line.left(colonIdx).trimmed();
+            if (ifaceName == "lo") continue;
+
+            QString stats = line.mid(colonIdx + 1).trimmed();
+            QStringList tokens = stats.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+            if (tokens.size() >= 9) {
+                totalRxBytes += tokens[0].toLongLong();
+                totalTxBytes += tokens[8].toLongLong();
+            }
+        }
+        file.close();
+    }
+
+    qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
+    if (m_lastSpeedTimeMs > 0 && nowMs > m_lastSpeedTimeMs) {
+        double deltaSec = (nowMs - m_lastSpeedTimeMs) / 1000.0;
+        if (deltaSec > 0.1) {
+            double rxDiff = (totalRxBytes >= m_prevRxBytes) ? (totalRxBytes - m_prevRxBytes) : 0;
+            double txDiff = (totalTxBytes >= m_prevTxBytes) ? (totalTxBytes - m_prevTxBytes) : 0;
+
+            m_downloadSpeedBps = rxDiff / deltaSec;
+            m_uploadSpeedBps = txDiff / deltaSec;
+
+            QString newDown = formatBytesPerSec(m_downloadSpeedBps);
+            QString newUp = formatBytesPerSec(m_uploadSpeedBps);
+
+            if (m_downloadSpeed != newDown) {
+                m_downloadSpeed = newDown;
+                emit downloadSpeedChanged();
+            }
+            if (m_uploadSpeed != newUp) {
+                m_uploadSpeed = newUp;
+                emit uploadSpeedChanged();
+            }
+        }
+    }
+
+    m_prevRxBytes = totalRxBytes;
+    m_prevTxBytes = totalTxBytes;
+    m_lastSpeedTimeMs = nowMs;
+
+    // 2. Ping Latency Measurement
+    if (!m_isCheckingPing && (m_isConnected || m_ethernetConnected || !m_gatewayAddress.isEmpty())) {
+        m_isCheckingPing = true;
+        QString pingTarget = !m_gatewayAddress.isEmpty() ? m_gatewayAddress : "1.1.1.1";
+        QProcess *pingProc = new QProcess(this);
+        connect(pingProc, &QProcess::finished, this, [this, pingProc](int code, QProcess::ExitStatus) {
+            QString out = pingProc->readAllStandardOutput();
+            pingProc->deleteLater();
+
+            int newPing = -1;
+            if (code == 0) {
+                QRegularExpression re("time=([0-9.]+)\\s*ms");
+                QRegularExpressionMatch match = re.match(out);
+                if (match.hasMatch()) {
+                    newPing = qRound(match.captured(1).toDouble());
+                }
+            }
+
+            if (m_pingMs != newPing) {
+                m_pingMs = newPing;
+                emit pingMsChanged();
+            }
+            m_isCheckingPing = false;
+        });
+
+        pingProc->start("ping", {"-c", "1", "-w", "2", pingTarget});
+    } else if (!m_isConnected && !m_ethernetConnected && m_gatewayAddress.isEmpty()) {
+        if (m_pingMs != -1) {
+            m_pingMs = -1;
+            emit pingMsChanged();
+        }
+    }
+}
+
 void NetworkManager::scanNetworks() {
     if (m_isScanning) return;
     m_isScanning = true;
@@ -285,7 +415,20 @@ void NetworkManager::scanNetworks() {
             netMap["isSaved"] = isSaved;
 
             newList.append(netMap);
-            plainSsids.append(ssid);
+        }
+
+        // Sort scanned networks by signal strength descending (highest speed/signal first)
+        std::sort(newList.begin(), newList.end(), [](const QVariant &a, const QVariant &b) {
+            return a.toMap()["signal"].toInt() > b.toMap()["signal"].toInt();
+        });
+
+        // Restrict to Top 10 Speed Networks only
+        if (newList.size() > 10) {
+            newList = newList.mid(0, 10);
+        }
+
+        for (const QVariant &v : newList) {
+            plainSsids.append(v.toMap()["ssid"].toString());
         }
 
         m_scannedNetworks = newList;
@@ -363,4 +506,5 @@ void NetworkManager::copyToClipboard(const QString &text) {
         cb->setText(text);
     }
 }
+
 
