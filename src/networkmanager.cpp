@@ -324,17 +324,11 @@ void NetworkManager::updateSpeedAndPing() {
             m_downloadSpeedBps = rxDiff / deltaSec;
             m_uploadSpeedBps = txDiff / deltaSec;
 
-            QString newDown = formatBytesPerSec(m_downloadSpeedBps);
-            QString newUp = formatBytesPerSec(m_uploadSpeedBps);
+            m_downloadSpeed = formatBytesPerSec(m_downloadSpeedBps);
+            m_uploadSpeed = formatBytesPerSec(m_uploadSpeedBps);
 
-            if (m_downloadSpeed != newDown) {
-                m_downloadSpeed = newDown;
-                emit downloadSpeedChanged();
-            }
-            if (m_uploadSpeed != newUp) {
-                m_uploadSpeed = newUp;
-                emit uploadSpeedChanged();
-            }
+            emit downloadSpeedChanged();
+            emit uploadSpeedChanged();
         }
     }
 
