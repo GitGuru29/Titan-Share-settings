@@ -92,6 +92,99 @@ ScrollView {
                     opacity: SettingsBackend.autolockEnabled ? 1.0 : 0.35
                 }
             }
+
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Column {
+                    spacing: 4
+                    Text {
+                        text: "Lock on Screen Off"
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Require password immediately after screen turns off"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
+                }
+                Item { Layout.fillWidth: true }
+                TitanSwitch { checked: SettingsBackend.lockOnScreenOff; onCheckedChanged: SettingsBackend.lockOnScreenOff = checked }
+            }
+        }
+
+        Item { height: 12 }
+
+        SettingsCard {
+            Layout.fillWidth: true; Layout.leftMargin: 24; Layout.rightMargin: 24
+            title: "Lockscreen Appearance"
+
+            RowLayout {
+                Layout.fillWidth: true
+                Column {
+                    spacing: 4
+                    Text {
+                        text: "Blur Background"
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Apply a blur effect to the wallpaper behind the lockscreen"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
+                }
+                Item { Layout.fillWidth: true }
+                TitanSwitch { checked: SettingsBackend.lockscreenBlur; onCheckedChanged: SettingsBackend.lockscreenBlur = checked }
+            }
+
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+
+            RowLayout {
+                Layout.fillWidth: true
+                Column {
+                    spacing: 4
+                    Text {
+                        text: "Ring Color"
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.Medium
+                        color: root.textHigh
+                    }
+                    Text {
+                        text: "Color of the authentication ring"
+                        font { pixelSize: 12; family: "Inter" }
+                        color: root.textMid
+                    }
+                }
+                Item { Layout.fillWidth: true }
+                
+                Row {
+                    spacing: 8
+                    Repeater {
+                        model: [
+                            { colorHex: SettingsBackend.accentColor.replace("#", ""), label: "Accent", val: SettingsBackend.accentColor.replace("#", "") },
+                            { colorHex: "4CAF82", label: "Green", val: "4CAF82" },
+                            { colorHex: "E05C6A", label: "Red", val: "E05C6A" },
+                            { colorHex: "FFFFFF", label: "Default", val: "default" }
+                        ]
+                        delegate: Rectangle {
+                            width: 32; height: 32; radius: 16
+                            color: "#" + modelData.colorHex
+                            border.width: 2
+                            border.color: SettingsBackend.lockscreenRingColor === modelData.val ? root.textHigh : "transparent"
+                            
+                            MouseArea {
+                                anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                onClicked: SettingsBackend.lockscreenRingColor = modelData.val
+                            }
+                        }
+                    }
+                }
+            }
         }
 
         Item { height: 12 }

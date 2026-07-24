@@ -48,6 +48,9 @@ void SettingsBackend::loadSettings() {
 
     m_autolockEnabled = m_settings.value("security/autolockEnabled", true).toBool();
     m_autolockDelay   = m_settings.value("security/autolockDelay",   300).toInt();
+    m_lockOnScreenOff = m_settings.value("security/lockOnScreenOff", false).toBool();
+    m_lockscreenBlur  = m_settings.value("security/lockscreenBlur", false).toBool();
+    m_lockscreenRingColor = m_settings.value("security/lockscreenRingColor", "default").toString();
 }
 
 void SettingsBackend::applyAndSave() {
@@ -64,6 +67,9 @@ void SettingsBackend::applyAndSave() {
     m_settings.setValue("power/profile",           m_powerProfile);
     m_settings.setValue("security/autolockEnabled",m_autolockEnabled);
     m_settings.setValue("security/autolockDelay",  m_autolockDelay);
+    m_settings.setValue("security/lockOnScreenOff", m_lockOnScreenOff);
+    m_settings.setValue("security/lockscreenBlur", m_lockscreenBlur);
+    m_settings.setValue("security/lockscreenRingColor", m_lockscreenRingColor);
     m_settings.sync();
 
     // 2. Apply accent color to Hyprland (border colors)
@@ -89,11 +95,23 @@ void SettingsBackend::applyAndSave() {
         "hyprctl keyword decoration:screen_shader '' 2>/dev/null"
     });
     // Write swayidle config for screen-off + suspend
+    QString swaylockCmd = "swaylock -f";
+    if (m_lockscreenBlur) {
+        swaylockCmd += " --effect-blur 7x5";
+    }
+    if (m_lockscreenRingColor != "default") {
+        swaylockCmd += " --ring-color " + m_lockscreenRingColor + " --inside-color 00000000 --line-color 00000000 --separator-color 00000000";
+    }
+
     QString swayidleConfig = QString(
-        "timeout %1 'hyprctl dispatch dpmsoff' resume 'hyprctl dispatch dpmson'\n"
-        "timeout %2 'systemctl suspend'\n"
-        "before-sleep 'swaylock -f'\n"
-    ).arg(m_screenTimeout).arg(m_suspendTimeout);
+        "timeout %1 'hyprctl dispatch dpmsoff%2' resume 'hyprctl dispatch dpmson'\n"
+        "timeout %3 'systemctl suspend'\n"
+        "before-sleep '%4'\n"
+    ).arg(m_screenTimeout).arg(m_lockOnScreenOff ? QString("; ") + swaylockCmd : "").arg(m_suspendTimeout).arg(swaylockCmd);
+
+    if (m_autolockEnabled) {
+        swayidleConfig += QString("timeout %1 '%2'\n").arg(m_autolockDelay).arg(swaylockCmd);
+    }
 
     QFile idleConf(QDir::homePath() + "/.config/swayidle/config");
     if (idleConf.open(QIODevice::WriteOnly | QIODevice::Text)) {
@@ -142,6 +160,9 @@ void SettingsBackend::resetToDefaults() {
     emit powerProfileChanged();
     emit autolockEnabledChanged();
     emit autolockDelayChanged();
+    emit lockOnScreenOffChanged();
+    emit lockscreenBlurChanged();
+    emit lockscreenRingColorChanged();
 }
 
 // Apply & persist the power profile immediately — no full applyAndSave() needed.
@@ -316,6 +337,27 @@ void SettingsBackend::setAutolockDelay(int v) {
     if (m_autolockDelay == v) return;
     m_autolockDelay = v;
     emit autolockDelayChanged();
+}
+
+bool SettingsBackend::lockOnScreenOff() const { return m_lockOnScreenOff; }
+void SettingsBackend::setLockOnScreenOff(bool v) {
+    if (m_lockOnScreenOff == v) return;
+    m_lockOnScreenOff = v;
+    emit lockOnScreenOffChanged();
+}
+
+bool SettingsBackend::lockscreenBlur() const { return m_lockscreenBlur; }
+void SettingsBackend::setLockscreenBlur(bool v) {
+    if (m_lockscreenBlur == v) return;
+    m_lockscreenBlur = v;
+    emit lockscreenBlurChanged();
+}
+
+QString SettingsBackend::lockscreenRingColor() const { return m_lockscreenRingColor; }
+void SettingsBackend::setLockscreenRingColor(const QString &v) {
+    if (m_lockscreenRingColor == v) return;
+    m_lockscreenRingColor = v;
+    emit lockscreenRingColorChanged();
 }
 
 // ── D-Bus power profile helper ─────────────────────────────────────────────
