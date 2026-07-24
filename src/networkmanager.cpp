@@ -287,32 +287,35 @@ QString NetworkManager::formatBytesPerSec(double bytesPerSec) const {
 }
 
 void NetworkManager::updateSpeedAndPing() {
+    qDebug() << "updateSpeedAndPing called";
     // 1. Calculate Upload & Download speed from /proc/net/dev
     qint64 totalRxBytes = 0;
     qint64 totalTxBytes = 0;
 
-    QFile file("/proc/net/dev");
-    if (file.open(QIODevice::ReadOnly | QIODevice::Text)) {
-        QTextStream in(&file);
-        while (!in.atEnd()) {
-            QString line = in.readLine().trimmed();
-            if (line.isEmpty() || line.startsWith("Inter-") || line.startsWith("face")) continue;
+        QFile file("/proc/net/dev");
+        if (file.open(QIODevice::ReadOnly)) {
+            QString content = file.readAll();
+            QStringList lines = content.split('\n');
+            for (const QString &rawLine : lines) {
+                QString line = rawLine.trimmed();
+                if (line.isEmpty() || line.startsWith("Inter-") || line.startsWith("face")) continue;
 
-            int colonIdx = line.indexOf(':');
-            if (colonIdx == -1) continue;
+                int colonIdx = line.indexOf(':');
+                if (colonIdx == -1) continue;
 
-            QString ifaceName = line.left(colonIdx).trimmed();
-            if (ifaceName == "lo") continue;
+                QString ifaceName = line.left(colonIdx).trimmed();
+                if (ifaceName == "lo") continue;
 
-            QString stats = line.mid(colonIdx + 1).trimmed();
-            QStringList tokens = stats.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
-            if (tokens.size() >= 9) {
-                totalRxBytes += tokens[0].toLongLong();
-                totalTxBytes += tokens[8].toLongLong();
+                QString stats = line.mid(colonIdx + 1).trimmed();
+                QStringList tokens = stats.split(QRegularExpression("\\s+"), Qt::SkipEmptyParts);
+                if (tokens.size() >= 9) {
+                    totalRxBytes += tokens[0].toLongLong();
+                    totalTxBytes += tokens[8].toLongLong();
+                }
             }
+            file.close();
         }
-        file.close();
-    }
+
 
     qint64 nowMs = QDateTime::currentMSecsSinceEpoch();
     if (m_lastSpeedTimeMs > 0 && nowMs > m_lastSpeedTimeMs) {
@@ -328,6 +331,7 @@ void NetworkManager::updateSpeedAndPing() {
             m_uploadSpeed = formatBytesPerSec(m_uploadSpeedBps);
 
             emit downloadSpeedChanged();
+    qDebug() << "Speed:" << m_downloadSpeed << m_uploadSpeed;
             emit uploadSpeedChanged();
         }
     }
