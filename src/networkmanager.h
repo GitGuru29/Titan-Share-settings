@@ -44,6 +44,7 @@ class NetworkManager : public QObject {
     Q_PROPERTY(double uploadSpeedBps READ uploadSpeedBps NOTIFY uploadSpeedChanged)
     Q_PROPERTY(double downloadSpeedBps READ downloadSpeedBps NOTIFY downloadSpeedChanged)
     Q_PROPERTY(int pingMs READ pingMs NOTIFY pingMsChanged)
+    Q_PROPERTY(bool isSpeedTestRunning READ isSpeedTestRunning NOTIFY isSpeedTestRunningChanged)
 
 public:
     explicit NetworkManager(QObject *parent = nullptr);
@@ -79,6 +80,7 @@ public:
     double uploadSpeedBps() const;
     double downloadSpeedBps() const;
     int pingMs() const;
+    bool isSpeedTestRunning() const;
 
     Q_INVOKABLE void refreshStatus();
     Q_INVOKABLE void scanNetworks();
@@ -86,6 +88,7 @@ public:
     Q_INVOKABLE void disconnectNetwork();
     Q_INVOKABLE void forgetNetwork(const QString &ssid);
     Q_INVOKABLE void copyToClipboard(const QString &text);
+    Q_INVOKABLE void toggleSpeedTest();
 
 signals:
     void wifiEnabledChanged();
@@ -116,6 +119,7 @@ signals:
     void uploadSpeedChanged();
     void downloadSpeedChanged();
     void pingMsChanged();
+    void isSpeedTestRunningChanged();
 
     void connectionSuccess(const QString &ssid);
     void connectionError(const QString &message);
@@ -162,6 +166,7 @@ private:
     QTimer *m_pollTimer = nullptr;
     QTimer *m_speedTimer = nullptr;
     bool m_isCheckingPing = false;
+    bool m_isSpeedTestRunning = false;
 
     QString formatBytesPerSec(double bytesPerSec) const;
 };
