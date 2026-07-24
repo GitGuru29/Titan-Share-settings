@@ -386,7 +386,7 @@ ScrollView {
             Item { Layout.fillWidth: true }
             TitanButton { text: "Reset Defaults"; primary: false; width: 140; onClicked: SettingsBackend.resetToDefaults() }
             Item { width: 10 }
-            TitanButton { text: "Apply & Save"; primary: true; width: 130; onClicked: SettingsBackend.applyAndSave() }
+            TitanButton { text: "Apply & Save"; primary: true; width: 130; onClicked: SettingsBackend.applyAppearance() }
         }
 
         Item { height: 28 }

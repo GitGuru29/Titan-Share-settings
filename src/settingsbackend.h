@@ -78,7 +78,8 @@ public:
     QString lockscreenRingColor() const;
     void setLockscreenRingColor(const QString &v);
 
-    Q_INVOKABLE void applyAndSave();
+    Q_INVOKABLE void applyAppearance();
+    Q_INVOKABLE void applySecurity();
     Q_INVOKABLE void resetToDefaults();
     Q_INVOKABLE void applyPowerProfileNow(const QString &profile);
     Q_INVOKABLE void applyScreenTimeoutNow(int seconds);
@@ -122,6 +123,7 @@ private:
     QString m_lockscreenRingColor;
 
     void loadSettings();
+    void updateSwayidleConfig();
     bool applyPowerProfileDBus(const QString &profile);
 
 private slots:

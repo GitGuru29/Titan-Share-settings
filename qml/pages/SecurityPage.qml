@@ -333,7 +333,7 @@ ScrollView {
         RowLayout {
             Layout.leftMargin: 24; Layout.rightMargin: 24
             Item { Layout.fillWidth: true }
-            TitanButton { text: "Apply & Save"; primary: true; width: 130; onClicked: SettingsBackend.applyAndSave() }
+            TitanButton { text: "Apply & Save"; primary: true; width: 130; onClicked: SettingsBackend.applySecurity() }
         }
         Item { height: 28 }
     }

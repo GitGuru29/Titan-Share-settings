@@ -53,7 +53,7 @@ void SettingsBackend::loadSettings() {
     m_lockscreenRingColor = m_settings.value("security/lockscreenRingColor", "default").toString();
 }
 
-void SettingsBackend::applyAndSave() {
+void SettingsBackend::applyAppearance() {
     // 1. Persist to QSettings
     m_settings.setValue("appearance/colorTheme",   m_colorTheme);
     m_settings.setValue("appearance/accentColor",  m_accentColor);
@@ -62,18 +62,9 @@ void SettingsBackend::applyAndSave() {
     m_settings.setValue("appearance/iconTheme",    m_iconTheme);
     m_settings.setValue("appearance/fontFamily",   m_fontFamily);
     m_settings.setValue("appearance/fontSize",     m_fontSize);
-    m_settings.setValue("power/screenTimeout",     m_screenTimeout);
-    m_settings.setValue("power/suspendTimeout",    m_suspendTimeout);
-    m_settings.setValue("power/profile",           m_powerProfile);
-    m_settings.setValue("security/autolockEnabled",m_autolockEnabled);
-    m_settings.setValue("security/autolockDelay",  m_autolockDelay);
-    m_settings.setValue("security/lockOnScreenOff", m_lockOnScreenOff);
-    m_settings.setValue("security/lockscreenBlur", m_lockscreenBlur);
-    m_settings.setValue("security/lockscreenRingColor", m_lockscreenRingColor);
     m_settings.sync();
 
     // 2. Apply accent color to Hyprland (border colors)
-    // Strip '#' and convert to 0xRRGGBB format Hyprland expects
     QString hex = m_accentColor;
     hex.remove('#');
     QString hyprColor = "0xff" + hex;
@@ -90,11 +81,27 @@ void SettingsBackend::applyAndSave() {
     QProcess::startDetached("gsettings", {"set", "org.gnome.desktop.interface", "monospace-font-name",
                                           m_fontFamily + " " + QString::number(m_fontSize)});
 
-    // 5. Apply screen timeout via Hyprland DPMS
-    QProcess::startDetached("bash", {"-c",
-        "hyprctl keyword decoration:screen_shader '' 2>/dev/null"
-    });
-    // Write swayidle config for screen-off + suspend
+    qDebug() << "[SettingsBackend] Appearance Applied:" << m_colorTheme << m_accentColor << m_iconTheme << fontSpec;
+    emit settingsSaved();
+}
+
+void SettingsBackend::applySecurity() {
+    m_settings.setValue("security/autolockEnabled",m_autolockEnabled);
+    m_settings.setValue("security/autolockDelay",  m_autolockDelay);
+    m_settings.setValue("security/lockOnScreenOff", m_lockOnScreenOff);
+    m_settings.setValue("security/lockscreenBlur", m_lockscreenBlur);
+    m_settings.setValue("security/lockscreenRingColor", m_lockscreenRingColor);
+    m_settings.sync();
+
+    updateSwayidleConfig();
+
+    qDebug() << "[SettingsBackend] Security Applied";
+    emit settingsSaved();
+}
+
+void SettingsBackend::updateSwayidleConfig() {
+    QProcess::startDetached("bash", {"-c", "hyprctl keyword decoration:screen_shader '' 2>/dev/null"});
+
     QString swaylockCmd = "swaylock -f";
     if (m_lockscreenBlur) {
         swaylockCmd += " --effect-blur 7x5";
@@ -118,31 +125,11 @@ void SettingsBackend::applyAndSave() {
         QTextStream(&idleConf) << swayidleConfig;
         idleConf.close();
     }
-    // Restart swayidle to pick up new config
     QProcess::startDetached("bash", {"-c", "pkill swayidle 2>/dev/null; command -v swayidle >/dev/null && swayidle -w &"});
 
-    // 6. Apply autolock (swaylock timeout via swayidle — already handled above)
-    //    If disabled, kill swayidle
     if (!m_autolockEnabled) {
         QProcess::startDetached("pkill", {"swayidle"});
     }
-
-    // 7. Power profile via D-Bus → power-profiles-daemon
-    if (m_powerProfile != "Custom") {
-        // Map display name → daemon profile ID
-        QString prof = m_powerProfile.toLower();
-        prof.replace(' ', '-');  // "Power Saver" → "power-saver"
-
-        bool ok = applyPowerProfileDBus(prof);
-        if (!ok) {
-            // Fallback: try powerprofilesctl synchronously
-            qWarning() << "[SettingsBackend] D-Bus failed, falling back to powerprofilesctl";
-            QProcess::execute("powerprofilesctl", {"set", prof});
-        }
-    }
-
-    qDebug() << "[SettingsBackend] Applied:" << m_colorTheme << m_accentColor << m_iconTheme << fontSpec;
-    emit settingsSaved();
 }
 
 void SettingsBackend::resetToDefaults() {
@@ -202,19 +189,7 @@ void SettingsBackend::applyScreenTimeoutNow(int seconds)
     m_settings.sync();
 
     // Rewrite swayidle config with the new screen timeout
-    QString swayidleConfig = QString(
-        "timeout %1 'hyprctl dispatch dpmsoff' resume 'hyprctl dispatch dpmson'\n"
-        "timeout %2 'systemctl suspend'\n"
-        "before-sleep 'swaylock -f'\n"
-    ).arg(m_screenTimeout).arg(m_suspendTimeout);
-
-    QFile idleConf(QDir::homePath() + QStringLiteral("/.config/swayidle/config"));
-    if (idleConf.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream(&idleConf) << swayidleConfig;
-        idleConf.close();
-    }
-    QProcess::startDetached(QStringLiteral("bash"),
-        {QStringLiteral("-c"), QStringLiteral("pkill swayidle 2>/dev/null; command -v swayidle >/dev/null && swayidle -w &")});
+    updateSwayidleConfig();
 
     qDebug() << "[SettingsBackend] Screen timeout applied:" << seconds << "s";
 }
@@ -236,19 +211,7 @@ void SettingsBackend::applySuspendTimeoutNow(int seconds)
         return;
     }
 
-    QString swayidleConfig = QString(
-        "timeout %1 'hyprctl dispatch dpmsoff' resume 'hyprctl dispatch dpmson'\n"
-        "timeout %2 'systemctl suspend'\n"
-        "before-sleep 'swaylock -f'\n"
-    ).arg(m_screenTimeout).arg(m_suspendTimeout);
-
-    QFile idleConf(QDir::homePath() + QStringLiteral("/.config/swayidle/config"));
-    if (idleConf.open(QIODevice::WriteOnly | QIODevice::Text)) {
-        QTextStream(&idleConf) << swayidleConfig;
-        idleConf.close();
-    }
-    QProcess::startDetached(QStringLiteral("bash"),
-        {QStringLiteral("-c"), QStringLiteral("pkill swayidle 2>/dev/null; command -v swayidle >/dev/null && swayidle -w &")});
+    updateSwayidleConfig();
 
     qDebug() << "[SettingsBackend] Suspend timeout applied:" << seconds << "s";
 }
