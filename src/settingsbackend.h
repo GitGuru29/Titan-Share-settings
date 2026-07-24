@@ -26,6 +26,9 @@ class SettingsBackend : public QObject {
     // Security
     Q_PROPERTY(bool autolockEnabled READ autolockEnabled WRITE setAutolockEnabled NOTIFY autolockEnabledChanged)
     Q_PROPERTY(int autolockDelay READ autolockDelay WRITE setAutolockDelay NOTIFY autolockDelayChanged)
+    Q_PROPERTY(bool lockOnScreenOff READ lockOnScreenOff WRITE setLockOnScreenOff NOTIFY lockOnScreenOffChanged)
+    Q_PROPERTY(bool lockscreenBlur READ lockscreenBlur WRITE setLockscreenBlur NOTIFY lockscreenBlurChanged)
+    Q_PROPERTY(QString lockscreenRingColor READ lockscreenRingColor WRITE setLockscreenRingColor NOTIFY lockscreenRingColorChanged)
 
 public:
     explicit SettingsBackend(QObject *parent = nullptr);
@@ -66,6 +69,15 @@ public:
     int autolockDelay() const;
     void setAutolockDelay(int v);
 
+    bool lockOnScreenOff() const;
+    void setLockOnScreenOff(bool v);
+
+    bool lockscreenBlur() const;
+    void setLockscreenBlur(bool v);
+
+    QString lockscreenRingColor() const;
+    void setLockscreenRingColor(const QString &v);
+
     Q_INVOKABLE void applyAndSave();
     Q_INVOKABLE void resetToDefaults();
     Q_INVOKABLE void applyPowerProfileNow(const QString &profile);
@@ -86,6 +98,9 @@ signals:
     void powerProfileChanged();
     void autolockEnabledChanged();
     void autolockDelayChanged();
+    void lockOnScreenOffChanged();
+    void lockscreenBlurChanged();
+    void lockscreenRingColorChanged();
     void settingsSaved();
 
 private:
@@ -102,6 +117,9 @@ private:
     QString m_powerProfile;
     bool m_autolockEnabled;
     int m_autolockDelay;
+    bool m_lockOnScreenOff;
+    bool m_lockscreenBlur;
+    QString m_lockscreenRingColor;
 
     void loadSettings();
     bool applyPowerProfileDBus(const QString &profile);
