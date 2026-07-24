@@ -279,165 +279,283 @@ Item {
 
             Item { height: 14 }
 
-            // ── Realtime Network Speedometer & Ping Card ────────────────────────
+            // ── Network Speed Test Card ────────────────────────
             SettingsCard {
                 Layout.fillWidth: true
                 Layout.leftMargin: 24; Layout.rightMargin: 24
-                title: "Realtime Network Activity"
+                title: "Network Speed Test"
 
-                GridLayout {
+                ColumnLayout {
                     Layout.fillWidth: true
-                    columns: 3
-                    columnSpacing: 16; rowSpacing: 12
+                    spacing: 24
 
-                    // Download Speed Tile
-                    Rectangle {
-                        Layout.fillWidth: true; height: 130; radius: 14
-                        color: globalBg3
-                        border.width: 1; border.color: globalBorder1
-
-                        ColumnLayout {
-                            anchors.fill: parent; anchors.margins: 14
-                            spacing: 6
-
-                            RowLayout {
-                                spacing: 8
-                                Rectangle {
-                                    width: 28; height: 28; radius: 8
-                                    color: "#143026"
-                                    border.width: 1; border.color: pageRoot.green + "50"
-
-                                    Canvas {
-                                        anchors.centerIn: parent; width: 12; height: 12
-                                        onPaint: {
-                                            var ctx = getContext("2d"); ctx.reset();
-                                            ctx.strokeStyle = pageRoot.green; ctx.lineWidth = 1.6;
-                                            ctx.beginPath(); ctx.moveTo(6, 1); ctx.lineTo(6, 11); ctx.stroke();
-                                            ctx.beginPath(); ctx.moveTo(2, 7); ctx.lineTo(6, 11); ctx.lineTo(10, 7); ctx.stroke();
-                                        }
+                    // Controls & Speedometer visualization
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 24
+                        
+                        // Futuristic Circular Speedometer
+                        Rectangle {
+                            width: 140; height: 140; radius: 70
+                            color: "transparent"
+                            Layout.alignment: Qt.AlignVCenter
+                            
+                            Canvas {
+                                id: neonSpeedometer
+                                anchors.fill: parent
+                                property real currentSpeed: NetworkManager.downloadSpeedBps + NetworkManager.uploadSpeedBps
+                                property real animRatio: NetworkManager.isSpeedTestRunning ? Math.min(1.0, Math.log10(1 + currentSpeed / 5000.0) / 4.0) : 0
+                                
+                                Behavior on animRatio { NumberAnimation { duration: 300; easing.type: Easing.OutQuad } }
+                                onAnimRatioChanged: requestPaint()
+                                
+                                onPaint: {
+                                    var ctx = getContext("2d"); ctx.reset();
+                                    var cX = width/2; var cY = height/2; var radius = 58;
+                                    var startAngle = Math.PI * 0.75; var endAngle = Math.PI * 2.25;
+                                    
+                                    // Background Track
+                                    ctx.lineWidth = 6; ctx.lineCap = "round"; ctx.strokeStyle = globalBg4;
+                                    ctx.beginPath(); ctx.arc(cX, cY, radius, startAngle, endAngle); ctx.stroke();
+                                    
+                                    if (animRatio > 0.005) {
+                                        var currentAngle = startAngle + animRatio * (endAngle - startAngle);
+                                        var grad = ctx.createLinearGradient(0, 0, width, 0);
+                                        grad.addColorStop(0, pageRoot.accent); grad.addColorStop(1, pageRoot.green);
+                                        
+                                        // Glow effect via shadow
+                                        ctx.shadowColor = pageRoot.green;
+                                        ctx.shadowBlur = 12;
+                                        
+                                        ctx.lineWidth = 8; ctx.strokeStyle = grad;
+                                        ctx.beginPath(); ctx.arc(cX, cY, radius, startAngle, currentAngle); ctx.stroke();
+                                        
+                                        // End cap dot
+                                        ctx.shadowBlur = 16;
+                                        ctx.fillStyle = "#ffffff";
+                                        ctx.beginPath();
+                                        ctx.arc(cX + Math.cos(currentAngle)*radius, cY + Math.sin(currentAngle)*radius, 4, 0, Math.PI*2);
+                                        ctx.fill();
                                     }
                                 }
-
+                            }
+                            
+                            // Center Text
+                            Column {
+                                anchors.centerIn: parent; spacing: 2
                                 Text {
-                                    text: "REALTIME DOWNLOAD"
-                                    font { pixelSize: 9; family: "Inter"; weight: Font.Bold; letterSpacing: 1.0 }
-                                    color: pageRoot.textLow
+                                    text: NetworkManager.isSpeedTestRunning ? "TESTING" : "IDLE"
+                                    font { pixelSize: 9; family: "Inter"; weight: Font.Bold; letterSpacing: 2.0 }
+                                    color: NetworkManager.isSpeedTestRunning ? pageRoot.green : pageRoot.textMid
+                                    anchors.horizontalCenter: parent.horizontalCenter
                                 }
-                            }
-
-                            Item { Layout.fillHeight: true }
-
-                            Text {
-                                text: NetworkManager.downloadSpeed
-                                font { pixelSize: 22; family: "Inter"; weight: Font.Bold }
-                                color: pageRoot.green
-                            }
-
-                            Text {
-                                text: "Current RX Data Rate"
-                                font { pixelSize: 11; family: "Inter" }
-                                color: pageRoot.textMid
+                                Text {
+                                    text: NetworkManager.isSpeedTestRunning ? NetworkManager.downloadSpeed : "---"
+                                    font { pixelSize: 14; family: "Inter"; weight: Font.Bold }
+                                    color: pageRoot.textHigh
+                                    anchors.horizontalCenter: parent.horizontalCenter
+                                }
                             }
                         }
-                    }
-
-                    // Upload Speed Tile
-                    Rectangle {
-                        Layout.fillWidth: true; height: 130; radius: 14
-                        color: globalBg3
-                        border.width: 1; border.color: globalBorder1
-
+                        
+                        // Action Button and Description
                         ColumnLayout {
-                            anchors.fill: parent; anchors.margins: 14
-                            spacing: 6
-
-                            RowLayout {
-                                spacing: 8
-                                Rectangle {
-                                    width: 28; height: 28; radius: 8
-                                    color: "#1F234D"
-                                    border.width: 1; border.color: pageRoot.accent + "50"
-
-                                    Canvas {
-                                        anchors.centerIn: parent; width: 12; height: 12
-                                        onPaint: {
-                                            var ctx = getContext("2d"); ctx.reset();
-                                            ctx.strokeStyle = pageRoot.accent; ctx.lineWidth = 1.6;
-                                            ctx.beginPath(); ctx.moveTo(6, 11); ctx.lineTo(6, 1); ctx.stroke();
-                                            ctx.beginPath(); ctx.moveTo(2, 5); ctx.lineTo(6, 1); ctx.lineTo(10, 5); ctx.stroke();
-                                        }
-                                    }
-                                }
-
-                                Text {
-                                    text: "REALTIME UPLOAD"
-                                    font { pixelSize: 9; family: "Inter"; weight: Font.Bold; letterSpacing: 1.0 }
-                                    color: pageRoot.textLow
-                                }
-                            }
-
-                            Item { Layout.fillHeight: true }
-
+                            Layout.fillWidth: true
+                            spacing: 12
+                            
                             Text {
-                                text: NetworkManager.uploadSpeed
-                                font { pixelSize: 22; family: "Inter"; weight: Font.Bold }
-                                color: pageRoot.accent
-                            }
-
-                            Text {
-                                text: "Current TX Data Rate"
-                                font { pixelSize: 11; family: "Inter" }
+                                text: NetworkManager.isSpeedTestRunning 
+                                    ? "Network speed test is currently active. Monitoring real-time bandwidth and ping latency..." 
+                                    : "Start an on-demand speed test to check your real-time network throughput and latency. This will temporarily increase background activity."
+                                font { pixelSize: 13; family: "Inter" }
                                 color: pageRoot.textMid
+                                Layout.fillWidth: true
+                                wrapMode: Text.WordWrap
+                                lineHeight: 1.4
                             }
-                        }
-                    }
-
-                    // Ping Latency Tile
-                    Rectangle {
-                        Layout.fillWidth: true; height: 130; radius: 14
-                        color: globalBg3
-                        border.width: 1; border.color: globalBorder1
-
-                        ColumnLayout {
-                            anchors.fill: parent; anchors.margins: 14
-                            spacing: 6
-
-                            RowLayout {
-                                spacing: 8
-                                Rectangle {
-                                    width: 28; height: 28; radius: 8
-                                    color: NetworkManager.pingMs < 0 ? "#331418" : NetworkManager.pingMs < 40 ? "#143026" : "#332714"
-                                    border.width: 1
-                                    border.color: NetworkManager.pingMs < 0 ? pageRoot.red + "50" : NetworkManager.pingMs < 40 ? pageRoot.green + "50" : pageRoot.orange + "50"
-
+                            
+                            Rectangle {
+                                width: 150; height: 38; radius: 6
+                                color: NetworkManager.isSpeedTestRunning ? "#331418" : pageRoot.accent
+                                border.width: 1
+                                border.color: NetworkManager.isSpeedTestRunning ? pageRoot.red : Qt.lighter(pageRoot.accent, 1.2)
+                                
+                                Row {
+                                    anchors.centerIn: parent; spacing: 8
                                     Rectangle {
-                                        anchors.centerIn: parent
                                         width: 8; height: 8; radius: 4
-                                        color: NetworkManager.pingMs < 0 ? pageRoot.red : NetworkManager.pingMs < 40 ? pageRoot.green : pageRoot.orange
+                                        color: NetworkManager.isSpeedTestRunning ? pageRoot.red : "#ffffff"
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                    Text {
+                                        text: NetworkManager.isSpeedTestRunning ? "STOP TEST" : "START TEST"
+                                        font { pixelSize: 11; family: "Inter"; weight: Font.Bold; letterSpacing: 1.0 }
+                                        color: NetworkManager.isSpeedTestRunning ? pageRoot.red : "#ffffff"
+                                        anchors.verticalCenter: parent.verticalCenter
+                                    }
+                                }
+                                
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: NetworkManager.toggleSpeedTest()
+                                }
+                            }
+                        }
+                    }
+
+                    // Stat Tiles
+                    GridLayout {
+                        Layout.fillWidth: true
+                        columns: 3
+                        columnSpacing: 16; rowSpacing: 12
+
+                        // Download Speed Tile
+                        Rectangle {
+                            Layout.fillWidth: true; height: 130; radius: 14
+                            color: globalBg3
+                            border.width: 1; border.color: globalBorder1
+
+                            ColumnLayout {
+                                anchors.fill: parent; anchors.margins: 14
+                                spacing: 6
+
+                                RowLayout {
+                                    spacing: 8
+                                    Rectangle {
+                                        width: 28; height: 28; radius: 8
+                                        color: "#143026"
+                                        border.width: 1; border.color: pageRoot.green + "50"
+
+                                        Canvas {
+                                            anchors.centerIn: parent; width: 12; height: 12
+                                            onPaint: {
+                                                var ctx = getContext("2d"); ctx.reset();
+                                                ctx.strokeStyle = pageRoot.green; ctx.lineWidth = 1.6;
+                                                ctx.beginPath(); ctx.moveTo(6, 1); ctx.lineTo(6, 11); ctx.stroke();
+                                                ctx.beginPath(); ctx.moveTo(2, 7); ctx.lineTo(6, 11); ctx.lineTo(10, 7); ctx.stroke();
+                                            }
+                                        }
+                                    }
+
+                                    Text {
+                                        text: "REALTIME DOWNLOAD"
+                                        font { pixelSize: 9; family: "Inter"; weight: Font.Bold; letterSpacing: 1.0 }
+                                        color: pageRoot.textLow
                                     }
                                 }
 
+                                Item { Layout.fillHeight: true }
+
                                 Text {
-                                    text: "NETWORK PING"
-                                    font { pixelSize: 9; family: "Inter"; weight: Font.Bold; letterSpacing: 1.0 }
-                                    color: pageRoot.textLow
+                                    text: NetworkManager.isSpeedTestRunning ? NetworkManager.downloadSpeed : "---"
+                                    font { pixelSize: 22; family: "Inter"; weight: Font.Bold }
+                                    color: NetworkManager.isSpeedTestRunning ? pageRoot.green : pageRoot.textMid
+                                }
+
+                                Text {
+                                    text: "Current RX Data Rate"
+                                    font { pixelSize: 11; family: "Inter" }
+                                    color: pageRoot.textMid
                                 }
                             }
+                        }
 
-                            Item { Layout.fillHeight: true }
+                        // Upload Speed Tile
+                        Rectangle {
+                            Layout.fillWidth: true; height: 130; radius: 14
+                            color: globalBg3
+                            border.width: 1; border.color: globalBorder1
 
-                            Text {
-                                text: NetworkManager.pingMs >= 0 ? NetworkManager.pingMs + " ms" : "Offline"
-                                font { pixelSize: 22; family: "Inter"; weight: Font.Bold }
-                                color: NetworkManager.pingMs < 0 ? pageRoot.red : NetworkManager.pingMs < 40 ? pageRoot.green : pageRoot.orange
+                            ColumnLayout {
+                                anchors.fill: parent; anchors.margins: 14
+                                spacing: 6
+
+                                RowLayout {
+                                    spacing: 8
+                                    Rectangle {
+                                        width: 28; height: 28; radius: 8
+                                        color: "#1F234D"
+                                        border.width: 1; border.color: pageRoot.accent + "50"
+
+                                        Canvas {
+                                            anchors.centerIn: parent; width: 12; height: 12
+                                            onPaint: {
+                                                var ctx = getContext("2d"); ctx.reset();
+                                                ctx.strokeStyle = pageRoot.accent; ctx.lineWidth = 1.6;
+                                                ctx.beginPath(); ctx.moveTo(6, 11); ctx.lineTo(6, 1); ctx.stroke();
+                                                ctx.beginPath(); ctx.moveTo(2, 5); ctx.lineTo(6, 1); ctx.lineTo(10, 5); ctx.stroke();
+                                            }
+                                        }
+                                    }
+
+                                    Text {
+                                        text: "REALTIME UPLOAD"
+                                        font { pixelSize: 9; family: "Inter"; weight: Font.Bold; letterSpacing: 1.0 }
+                                        color: pageRoot.textLow
+                                    }
+                                }
+
+                                Item { Layout.fillHeight: true }
+
+                                Text {
+                                    text: NetworkManager.isSpeedTestRunning ? NetworkManager.uploadSpeed : "---"
+                                    font { pixelSize: 22; family: "Inter"; weight: Font.Bold }
+                                    color: NetworkManager.isSpeedTestRunning ? pageRoot.accent : pageRoot.textMid
+                                }
+
+                                Text {
+                                    text: "Current TX Data Rate"
+                                    font { pixelSize: 11; family: "Inter" }
+                                    color: pageRoot.textMid
+                                }
                             }
+                        }
 
-                            Text {
-                                text: NetworkManager.pingMs < 0 ? "No Connection"
-                                    : NetworkManager.pingMs < 35 ? "Excellent Latency"
-                                    : NetworkManager.pingMs < 85 ? "Good Latency" : "Fair Latency"
-                                font { pixelSize: 11; family: "Inter" }
-                                color: pageRoot.textMid
+                        // Ping Latency Tile
+                        Rectangle {
+                            Layout.fillWidth: true; height: 130; radius: 14
+                            color: globalBg3
+                            border.width: 1; border.color: globalBorder1
+
+                            ColumnLayout {
+                                anchors.fill: parent; anchors.margins: 14
+                                spacing: 6
+
+                                RowLayout {
+                                    spacing: 8
+                                    Rectangle {
+                                        width: 28; height: 28; radius: 8
+                                        color: NetworkManager.isSpeedTestRunning ? (NetworkManager.pingMs < 0 ? "#331418" : NetworkManager.pingMs < 40 ? "#143026" : "#332714") : globalBg4
+                                        border.width: 1
+                                        border.color: NetworkManager.isSpeedTestRunning ? (NetworkManager.pingMs < 0 ? pageRoot.red + "50" : NetworkManager.pingMs < 40 ? pageRoot.green + "50" : pageRoot.orange + "50") : globalBorder1
+
+                                        Rectangle {
+                                            anchors.centerIn: parent
+                                            width: 8; height: 8; radius: 4
+                                            color: NetworkManager.isSpeedTestRunning ? (NetworkManager.pingMs < 0 ? pageRoot.red : NetworkManager.pingMs < 40 ? pageRoot.green : pageRoot.orange) : pageRoot.textMid
+                                        }
+                                    }
+
+                                    Text {
+                                        text: "NETWORK PING"
+                                        font { pixelSize: 9; family: "Inter"; weight: Font.Bold; letterSpacing: 1.0 }
+                                        color: pageRoot.textLow
+                                    }
+                                }
+
+                                Item { Layout.fillHeight: true }
+
+                                Text {
+                                    text: NetworkManager.isSpeedTestRunning ? (NetworkManager.pingMs >= 0 ? NetworkManager.pingMs + " ms" : "Offline") : "---"
+                                    font { pixelSize: 22; family: "Inter"; weight: Font.Bold }
+                                    color: NetworkManager.isSpeedTestRunning ? (NetworkManager.pingMs < 0 ? pageRoot.red : NetworkManager.pingMs < 40 ? pageRoot.green : pageRoot.orange) : pageRoot.textMid
+                                }
+
+                                Text {
+                                    text: NetworkManager.isSpeedTestRunning ? (NetworkManager.pingMs < 0 ? "No Connection" : NetworkManager.pingMs < 35 ? "Excellent Latency" : NetworkManager.pingMs < 85 ? "Good Latency" : "Fair Latency") : "Idle"
+                                    font { pixelSize: 11; family: "Inter" }
+                                    color: pageRoot.textMid
+                                }
                             }
                         }
                     }

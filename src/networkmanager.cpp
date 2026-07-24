@@ -19,10 +19,38 @@ NetworkManager::NetworkManager(QObject *parent) : QObject(parent) {
     connect(m_pollTimer, &QTimer::timeout, this, &NetworkManager::refreshStatus);
     m_pollTimer->start(3000);
 
-    // Periodic speed & ping timer every 1 second
+    // Periodic speed & ping timer every 1 second (Started on-demand)
     m_speedTimer = new QTimer(this);
     connect(m_speedTimer, &QTimer::timeout, this, &NetworkManager::updateSpeedAndPing);
-    m_speedTimer->start(1000);
+}
+
+bool NetworkManager::isSpeedTestRunning() const {
+    return m_isSpeedTestRunning;
+}
+
+void NetworkManager::toggleSpeedTest() {
+    if (m_isSpeedTestRunning) {
+        m_speedTimer->stop();
+        m_isSpeedTestRunning = false;
+        
+        m_uploadSpeed = "0 B/s";
+        m_downloadSpeed = "0 B/s";
+        m_uploadSpeedBps = 0.0;
+        m_downloadSpeedBps = 0.0;
+        m_pingMs = -1;
+        
+        emit uploadSpeedChanged();
+        emit downloadSpeedChanged();
+        emit pingMsChanged();
+    } else {
+        m_isSpeedTestRunning = true;
+        m_prevRxBytes = 0;
+        m_prevTxBytes = 0;
+        m_lastSpeedTimeMs = 0;
+        
+        m_speedTimer->start(1000);
+    }
+    emit isSpeedTestRunningChanged();
 }
 
 void NetworkManager::refreshStatus() {
