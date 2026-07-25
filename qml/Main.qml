@@ -121,28 +121,18 @@ ApplicationWindow {
                     // ── Logo Header ──────────────────────────────
                     Item {
                         Layout.fillWidth: true
-                        height: 64
+                        height: 54
 
-                        RowLayout {
+                        Image {
                             anchors {
-                                left: parent.left; leftMargin: 18
+                                left: parent.left; leftMargin: 16
+                                right: parent.right; rightMargin: 16
                                 verticalCenter: parent.verticalCenter
                             }
-                            spacing: 12
-
-                            Image {
-                                width: 28; height: 28
-                                source: "qrc:/ArchTitanSettings/assets/icons/LOGO.png"
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
-                            }
-
-                            Text {
-                                text: "ArchTitan"
-                                font { pixelSize: 15; family: "Inter" }
-                                font.weight: Font.Bold
-                                color: root.textHigh
-                            }
+                            height: 32
+                            source: "qrc:/ArchTitanSettings/assets/icons/LOGO.png"
+                            fillMode: Image.PreserveAspectFit
+                            smooth: true
                         }
                     }
 
