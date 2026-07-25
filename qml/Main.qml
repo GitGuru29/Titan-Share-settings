@@ -118,21 +118,31 @@ ApplicationWindow {
                     anchors.fill: parent
                     spacing: 0
 
-                    // ── Logo ──────────────────────────────────────
+                    // ── Logo Header ──────────────────────────────
                     Item {
                         Layout.fillWidth: true
-                        height: 90
+                        height: 64
 
-                        Image {
+                        RowLayout {
                             anchors {
-                                left: parent.left; leftMargin: 10
-                                right: parent.right; rightMargin: 10
+                                left: parent.left; leftMargin: 18
                                 verticalCenter: parent.verticalCenter
                             }
-                            height: 70
-                            source: "qrc:/ArchTitanSettings/assets/icons/LOGO.png"
-                            fillMode: Image.PreserveAspectFit
-                            smooth: true
+                            spacing: 12
+
+                            Image {
+                                width: 28; height: 28
+                                source: "qrc:/ArchTitanSettings/assets/icons/LOGO.png"
+                                fillMode: Image.PreserveAspectFit
+                                smooth: true
+                            }
+
+                            Text {
+                                text: "ArchTitan"
+                                font { pixelSize: 15; family: "Inter" }
+                                font.weight: Font.Bold
+                                color: root.textHigh
+                            }
                         }
                     }
 
@@ -143,22 +153,23 @@ ApplicationWindow {
                         color: root.border1
                     }
 
-                    Item { height: 8 }
+                    Item { height: 10 }
 
                     // ── Nav items ─────────────────────────────────
-                    Repeater {
-                        model: root.pages
-                        delegate: SidebarItem {
-                            Layout.fillWidth: true
-                            iconSource: "qrc:/ArchTitanSettings/assets/icons/" + modelData.icon + ".svg"
-                            label: modelData.label
-                            active: root.currentPage === index
-                            accent:   root.accent
-                            bgActive:  root.bg3
-                            bgHover:   root.bg4
-                            textActive: root.textHigh
-                            textNormal: root.textMid
-                            onClicked: root.currentPage = index
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 2
+
+                        Repeater {
+                            model: root.pages
+                            delegate: SidebarItem {
+                                Layout.fillWidth: true
+                                iconSource: "qrc:/ArchTitanSettings/assets/icons/" + modelData.icon + ".svg"
+                                label: modelData.label
+                                active: root.currentPage === index
+                                accent: root.accent
+                                onClicked: root.currentPage = index
+                            }
                         }
                     }
 
@@ -173,34 +184,35 @@ ApplicationWindow {
 
                     Item {
                         Layout.fillWidth: true
-                        height: 56
+                        height: 52
 
-                        Row {
+                        RowLayout {
                             anchors {
                                 left: parent.left; leftMargin: 18
+                                right: parent.right; rightMargin: 16
                                 verticalCenter: parent.verticalCenter
                             }
-                            spacing: 8
+                            spacing: 10
 
                             Rectangle {
-                                width: 7; height: 7; radius: 4
+                                width: 7; height: 7; radius: 3.5
                                 color: root.green
-                                anchors.verticalCenter: parent.verticalCenter
                             }
 
-                            Column {
-                                spacing: 2
-                                anchors.verticalCenter: parent.verticalCenter
+                            ColumnLayout {
+                                spacing: 1
+                                Layout.fillWidth: true
+
                                 Text {
                                     text: "ArchTitan OS"
                                     font { pixelSize: 11; family: "Inter" }
                                     font.weight: Font.Medium
-                                    color: root.textMid
+                                    color: root.textHigh
                                 }
                                 Text {
                                     text: "Settings v1.0"
                                     font { pixelSize: 10; family: "Inter" }
-                                    color: root.textLow
+                                    color: root.textMid
                                 }
                             }
                         }
