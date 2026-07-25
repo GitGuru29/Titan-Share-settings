@@ -61,6 +61,14 @@ qt_add_qml_module(archtitan-settings
         assets/icons/security.svg
         assets/icons/power.svg
         assets/icons/about.svg
+        assets/icons/cpu.svg
+        assets/icons/ram.svg
+        assets/icons/disk.svg
+        assets/icons/gpu.svg
+        assets/icons/hostname.svg
+        assets/icons/kernel.svg
+        assets/icons/uptime.svg
+        assets/icons/os.svg
         assets/icons/LOGO.png
         assets/icons/powersaving.png
         assets/icons/balanced.png
