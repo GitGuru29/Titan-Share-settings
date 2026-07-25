@@ -13,438 +13,396 @@ ScrollView {
     property color textLow:  globalTextLow
     property color accent:   SettingsBackend.accentColor
     property color red:      "#E05C6A"
-    property color purple:   "#7C6FCD"
+    property color green:    "#4CAF82"
 
     ColumnLayout {
         width: root.availableWidth
         spacing: 0
 
-        Item { height: 28 }
+        Item { height: 20 }
 
-        // ── Master output ────────────────────────────────────────
-        SettingsCard {
+        // ── Page Header ──────────────────────────────────────────
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Output"
+            spacing: 4
 
-            RowLayout {
-                Layout.fillWidth: true
-                spacing: 14
-
-                Rectangle {
-                    width: 38; height: 38; radius: 9
-                    color: AudioBackend.masterMuted ? "#2E1A1A" : "#1A1A1A"
-                    border.width: 1
-                    border.color: AudioBackend.masterMuted ? "#4A2A2A" : "#2A2A2A"
-                    Behavior on color { ColorAnimation { duration: 150 } }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: AudioBackend.masterMuted ? "✕" : (AudioBackend.masterVolume > 60 ? "▮▮▮" : "▮▮")
-                        font { pixelSize: AudioBackend.masterMuted ? 14 : 10; family: "Inter" }
-                        font.weight: Font.Bold
-                        color: AudioBackend.masterMuted ? root.red : root.textMid
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                        onClicked: AudioBackend.masterMuted = !AudioBackend.masterMuted
-                    }
-                }
-
-                TitanSlider {
-                    Layout.fillWidth: true
-                    from: 0; to: 100; stepSize: 1
-                    value: AudioBackend.masterVolume
-                    onValueChanged: AudioBackend.masterVolume = value
-                    enabled: !AudioBackend.masterMuted
-                    opacity: AudioBackend.masterMuted ? 0.3 : 1.0
-                    Behavior on opacity { NumberAnimation { duration: 180 } }
-                    fillColor: {
-                        if (AudioBackend.masterMuted) return "#3A3A3A"
-                        var v = AudioBackend.masterVolume / 100
-                        return v > 0.8 ? root.red : v > 0.5 ? "#D4853A" : root.accent
-                    }
-                }
-
-                Text {
-                    text: AudioBackend.masterMuted ? "Muted" : (AudioBackend.masterVolume + "%")
-                    font { pixelSize: 12; family: "Inter" }
-                    font.weight: Font.Medium
-                    color: AudioBackend.masterMuted ? root.red : root.accent
-                    Layout.preferredWidth: 48
-                    horizontalAlignment: Text.AlignRight
-                }
-            }
-
-            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
-
-            RowLayout {
-                Layout.fillWidth: true
-                Text {
-                    text: "Output Device"
-                    font { pixelSize: 12; family: "Inter" }
-                    color: root.textLow
-                }
-                Item { Layout.fillWidth: true }
-                Text {
-                    text: AudioBackend.activeOutput
-                    font { pixelSize: 12; family: "Inter" }
-                    font.weight: Font.Medium
-                    color: root.textHigh; elide: Text.ElideRight
-                    Layout.maximumWidth: 280
-                }
+            Text {
+                text: "Audio"
+                font { pixelSize: 22; family: "Inter" }
+                font.weight: Font.Bold
+                color: root.textHigh
             }
         }
 
-        Item { height: 12 }
+        Item { height: 20 }
 
-        // ── Microphone ───────────────────────────────────────────
-        SettingsCard {
+        // ── Top Stats Bar ──────────────────────────────────────────
+        Rectangle {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Microphone"
+            height: 76; radius: 10
+            color: globalBg3
+            border.width: 1; border.color: globalBorder1
 
             RowLayout {
-                Layout.fillWidth: true
-                spacing: 14
-
-                Rectangle {
-                    width: 38; height: 38; radius: 9
-                    color: AudioBackend.micMuted ? "#2E1A1A" : "#1A1A1A"
-                    border.width: 1
-                    border.color: AudioBackend.micMuted ? "#4A2A2A" : "#2A2A2A"
-                    Behavior on color { ColorAnimation { duration: 150 } }
-
-                    Text {
-                        anchors.centerIn: parent
-                        text: "MIC"
-                        font { pixelSize: 9; family: "Inter" }
-                        font.weight: Font.Bold
-                        color: AudioBackend.micMuted ? root.red : root.textMid
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                        onClicked: AudioBackend.micMuted = !AudioBackend.micMuted
-                    }
-                }
-
-                TitanSlider {
-                    Layout.fillWidth: true
-                    from: 0; to: 100; stepSize: 1
-                    value: AudioBackend.micVolume
-                    onValueChanged: AudioBackend.micVolume = value
-                    enabled: !AudioBackend.micMuted
-                    opacity: AudioBackend.micMuted ? 0.3 : 1.0
-                    Behavior on opacity { NumberAnimation { duration: 180 } }
-                    fillColor: AudioBackend.micMuted ? "#3A3A3A" : root.purple
-                }
-
-                Text {
-                    text: AudioBackend.micMuted ? "Muted" : (AudioBackend.micVolume + "%")
-                    font { pixelSize: 12; family: "Inter" }
-                    font.weight: Font.Medium
-                    color: AudioBackend.micMuted ? root.red : root.purple
-                    Layout.preferredWidth: 48
-                    horizontalAlignment: Text.AlignRight
-                }
-            }
-        }
-
-        Item { height: 12 }
-
-        // ── Equalizer Profiles ───────────────────────────────────
-        SettingsCard {
-            Layout.fillWidth: true
-            Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: AudioBackend.spatialAudio ? "Equalizer Profiles (Paused)" : "Equalizer Profiles"
-            enabled: !AudioBackend.spatialAudio
-            opacity: AudioBackend.spatialAudio ? 0.4 : 1.0
-            Behavior on opacity { NumberAnimation { duration: 150 } }
-
-            Flow {
-                Layout.fillWidth: true
-                spacing: 12
-
-                Repeater {
-                    model: ["Flat", "Bass Boost", "Vocal", "Electronic", "Acoustic", "Custom"]
-                    delegate: Rectangle {
-                        height: 32
-                        width: profileLabel.implicitWidth + 32
-                        radius: 16
-                        property bool sel: AudioBackend.activeEqProfile === modelData
-                        color: sel
-                               ? (isDarkTheme ? Qt.tint(globalBg3, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.25))
-                                              : Qt.tint(globalBg3, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.15)))
-                               : globalBg4
-                        border.width: 1
-                        border.color: sel ? root.accent : globalBorder0
-                        Behavior on color { ColorAnimation { duration: 120 } }
-
-                        Text {
-                            id: profileLabel
-                            anchors.centerIn: parent
-                            text: modelData
-                            font { pixelSize: 12; family: "Inter" }
-                            font.weight: sel ? Font.DemiBold : Font.Normal
-                            color: sel ? root.textHigh : root.textMid
-                        }
-
-                        MouseArea {
-                            anchors.fill: parent; cursorShape: Qt.PointingHandCursor
-                            onClicked: AudioBackend.activeEqProfile = modelData
-                        }
-                    }
-                }
-            }
-        }
-
-        Item { height: AudioBackend.activeEqProfile === "Custom" ? 12 : 0 }
-
-        // ── Custom Equalizer Sliders ─────────────────────────────
-        SettingsCard {
-            id: customEqCard
-            Layout.fillWidth: true
-            Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: AudioBackend.spatialAudio ? "Custom Equalizer Settings (Paused)" : "Custom Equalizer Settings"
-            visible: AudioBackend.activeEqProfile === "Custom"
-            enabled: !AudioBackend.spatialAudio
-            opacity: AudioBackend.spatialAudio ? 0.4 : 1.0
-            Behavior on opacity { NumberAnimation { duration: 150 } }
-
-
-            RowLayout {
-                Layout.fillWidth: true
-                Layout.bottomMargin: 16
-                
-                Text {
-                    text: "Fine-tune individual frequency bands manually. Changes are applied live."
-                    font { pixelSize: 12; family: "Inter" }
-                    color: root.textMid
-                    Layout.fillWidth: true
-                }
-                
-                TitanButton {
-                    text: "Reset to Flat"
-                    primary: false
-                    Layout.preferredHeight: 28
-                    onClicked: AudioBackend.resetCustomGains()
-                }
-            }
-
-            RowLayout {
-                id: slidersRow
-                Layout.fillWidth: true
-                spacing: 6
-                
-                Repeater {
-                    model: [
-                        { freq: "32Hz", index: 0 },
-                        { freq: "64Hz", index: 1 },
-                        { freq: "125Hz", index: 2 },
-                        { freq: "250Hz", index: 3 },
-                        { freq: "500Hz", index: 4 },
-                        { freq: "1kHz", index: 5 },
-                        { freq: "2kHz", index: 6 },
-                        { freq: "4kHz", index: 7 },
-                        { freq: "8kHz", index: 8 },
-                        { freq: "16kHz", index: 9 }
-                    ]
-                    
-                    delegate: ColumnLayout {
-                        Layout.fillWidth: true
-                        Layout.alignment: Qt.AlignHCenter
-                        spacing: 8
-                        
-                        Text {
-                            text: modelData.freq
-                            font { pixelSize: 10; family: "Inter" }
-                            font.weight: Font.Medium
-                            color: root.textLow
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-                        
-                        Slider {
-                            id: eqSlider
-                            orientation: Qt.Vertical
-                            from: -12.0
-                            to: 12.0
-                            stepSize: 0.5
-                            value: AudioBackend.customGains[modelData.index] || 0.0
-                            onMoved: AudioBackend.setCustomBandGain(modelData.index, value)
-                            Layout.preferredHeight: 140
-                            Layout.alignment: Qt.AlignHCenter
-                            
-                            background: Rectangle {
-                                implicitWidth: 4
-                                implicitHeight: 140
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                color: globalBorder0
-                                radius: 2
-                                border.color: globalBorder1
-                                border.width: 1
-
-                                Rectangle {
-                                    anchors.centerIn: parent
-                                    width: 10; height: 1
-                                    color: globalBorder1
-                                }
-
-                                Rectangle {
-                                    anchors.horizontalCenter: parent.horizontalCenter
-                                    y: eqSlider.value >= 0 
-                                       ? parent.height / 2 - (eqSlider.value / 12.0) * (parent.height / 2)
-                                       : parent.height / 2
-                                    width: 4
-                                    height: Math.abs(eqSlider.value / 12.0) * (parent.height / 2)
-                                    color: root.accent
-                                    radius: 2
-                                }
-                            }
-
-                            handle: Rectangle {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                y: eqSlider.topPadding + (1 - eqSlider.visualPosition) * (eqSlider.availableHeight - height)
-                                width: 14; height: 14; radius: 7
-                                color: root.accent
-                                border.width: 1.5
-                                border.color: globalBg0
-                                scale: eqSlider.pressed ? 0.85 : 1.0
-                                Behavior on scale { NumberAnimation { duration: 80 } }
-                            }
-                        }
-                        
-                        Text {
-                            text: (eqSlider.value > 0 ? "+" : "") + eqSlider.value.toFixed(1)
-                            font { pixelSize: 9; family: "Inter" }
-                            font.weight: Font.DemiBold
-                            color: eqSlider.value === 0 ? root.textLow : root.accent
-                            Layout.alignment: Qt.AlignHCenter
-                        }
-                    }
-                }
-            }
-        }
-
-        Item { height: 12 }
-
-        // ── Spatial Audio ─────────────────────────────────────────
-        SettingsCard {
-            Layout.fillWidth: true
-            Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Spatial Audio"
-
-            RowLayout {
-                Layout.fillWidth: true
+                anchors.fill: parent
                 spacing: 0
 
+                // OUTPUT
                 ColumnLayout {
                     Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.leftMargin: 16
                     spacing: 4
 
                     Text {
-                        text: "Virtual Stereo Widening"
-                        font { pixelSize: 14; family: "Inter" }
-                        font.weight: Font.Medium
+                        text: "OUTPUT"
+                        font { pixelSize: 9; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.2
+                        color: root.textLow
+                    }
+
+                    Text {
+                        text: AudioBackend.masterMuted ? "Muted" : (AudioBackend.masterVolume + "%")
+                        font { pixelSize: 16; family: "Inter" }
+                        font.weight: Font.Bold
+                        color: AudioBackend.masterMuted ? root.red : root.textHigh
+                    }
+                }
+
+                Rectangle { width: 1; height: 44; color: globalBorder1 }
+
+                // MICROPHONE
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.leftMargin: 16
+                    spacing: 4
+
+                    Text {
+                        text: "MICROPHONE"
+                        font { pixelSize: 9; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.2
+                        color: root.textLow
+                    }
+
+                    Text {
+                        text: AudioBackend.micMuted ? "Muted" : (AudioBackend.micVolume + "%")
+                        font { pixelSize: 16; family: "Inter" }
+                        font.weight: Font.Bold
+                        color: AudioBackend.micMuted ? root.red : root.textHigh
+                    }
+                }
+
+                Rectangle { width: 1; height: 44; color: globalBorder1 }
+
+                // EQ PROFILE
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.leftMargin: 16
+                    spacing: 4
+
+                    Text {
+                        text: "EQ PROFILE"
+                        font { pixelSize: 9; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.2
+                        color: root.textLow
+                    }
+
+                    Text {
+                        text: AudioBackend.activeEqProfile
+                        font { pixelSize: 15; family: "Inter" }
+                        font.weight: Font.Bold
                         color: root.textHigh
                     }
-                    Text {
-                        text: "Expands stereo image using a Haas-effect delay. Best experienced with headphones."
-                        font { pixelSize: 12; family: "Inter" }
-                        color: root.textMid
-                        wrapMode: Text.WordWrap
-                        Layout.fillWidth: true
-                    }
                 }
 
-                TitanSwitch {
-                    checked: AudioBackend.spatialAudio
-                    onCheckedChanged: AudioBackend.spatialAudio = checked
+                Rectangle { width: 1; height: 44; color: globalBorder1 }
+
+                // STEREO WIDTH
+                ColumnLayout {
+                    Layout.fillWidth: true
+                    Layout.alignment: Qt.AlignVCenter
+                    Layout.leftMargin: 16; Layout.rightMargin: 16
+                    spacing: 4
+
+                    Text {
+                        text: "STEREO WIDTH"
+                        font { pixelSize: 9; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.2
+                        color: root.textLow
+                    }
+
+                    Text {
+                        text: AudioBackend.spatialWidth + "%"
+                        font { pixelSize: 16; family: "Inter" }
+                        font.weight: Font.Bold
+                        color: root.accent
+                    }
                 }
             }
+        }
 
-            // Width control — only visible when spatial audio is on
+        Item { height: 16 }
+
+        // ── 2-Column Main Section ──────────────────────────────────
+        RowLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            spacing: 16
+            Layout.alignment: Qt.AlignTop
+
+            // Left Column (Output, Microphone, Equalizer)
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.topMargin: 16
-                spacing: 10
-                visible: AudioBackend.spatialAudio
-                opacity: AudioBackend.spatialAudio ? 1.0 : 0.0
-                Behavior on opacity { NumberAnimation { duration: 200 } }
+                Layout.preferredWidth: 600
+                spacing: 16
+                Layout.alignment: Qt.AlignTop
 
-                RowLayout {
+                // OUTPUT Card
+                SettingsCard {
                     Layout.fillWidth: true
+                    title: "OUTPUT"
 
-                    Text {
-                        text: "Width"
-                        font { pixelSize: 12; family: "Inter" }
-                        font.weight: Font.Medium
-                        color: root.textMid
-                    }
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 8
 
-                    Item { Layout.fillWidth: true }
+                        RowLayout {
+                            Layout.fillWidth: true
+                            spacing: 12
 
-                    // Colourful width badge
-                    Rectangle {
-                        width: widthBadge.implicitWidth + 16
-                        height: 22; radius: 11
-                        color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.18)
-                        border.width: 1
-                        border.color: Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.4)
+                            TitanSlider {
+                                Layout.fillWidth: true
+                                from: 0; to: 100; stepSize: 1
+                                value: AudioBackend.masterVolume
+                                onValueChanged: AudioBackend.masterVolume = value
+                                enabled: !AudioBackend.masterMuted
+                                opacity: AudioBackend.masterMuted ? 0.35 : 1.0
+                                fillColor: AudioBackend.masterMuted ? "#3A3A3A" : root.accent
+                            }
+
+                            Text {
+                                text: AudioBackend.masterMuted ? "Muted" : (AudioBackend.masterVolume + "%")
+                                font { pixelSize: 13; family: "Inter" }
+                                font.weight: Font.DemiBold
+                                color: AudioBackend.masterMuted ? root.red : root.accent
+                                Layout.preferredWidth: 48
+                                horizontalAlignment: Text.AlignRight
+                            }
+                        }
 
                         Text {
-                            id: widthBadge
-                            anchors.centerIn: parent
-                            text: AudioBackend.spatialWidth + "%"
+                            text: AudioBackend.activeOutput
                             font { pixelSize: 11; family: "Inter" }
-                            font.weight: Font.DemiBold
-                            color: root.accent
+                            color: root.textLow
+                            elide: Text.ElideRight
+                            Layout.fillWidth: true
                         }
                     }
                 }
 
-                TitanSlider {
+                // MICROPHONE Card
+                SettingsCard {
                     Layout.fillWidth: true
-                    from: 0; to: 100; stepSize: 1
-                    value: AudioBackend.spatialWidth
-                    onMoved: AudioBackend.spatialWidth = value
+                    title: "MICROPHONE"
+
+                    RowLayout {
+                        Layout.fillWidth: true
+                        spacing: 12
+
+                        TitanSlider {
+                            Layout.fillWidth: true
+                            from: 0; to: 100; stepSize: 1
+                            value: AudioBackend.micVolume
+                            onValueChanged: AudioBackend.micVolume = value
+                            enabled: !AudioBackend.micMuted
+                            opacity: AudioBackend.micMuted ? 0.35 : 1.0
+                            fillColor: AudioBackend.micMuted ? "#3A3A3A" : root.accent
+                        }
+
+                        Text {
+                            text: AudioBackend.micMuted ? "Muted" : (AudioBackend.micVolume + "%")
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.DemiBold
+                            color: AudioBackend.micMuted ? root.red : root.accent
+                            Layout.preferredWidth: 48
+                            horizontalAlignment: Text.AlignRight
+                        }
+                    }
                 }
 
-                // Width presets
-                RowLayout {
+                // EQUALIZER PROFILE Card
+                SettingsCard {
                     Layout.fillWidth: true
-                    spacing: 8
+                    title: "EQUALIZER PROFILE"
 
-                    Repeater {
-                        model: [
-                            { label: "Subtle",  val: 30  },
-                            { label: "Natural", val: 60  },
-                            { label: "Wide",    val: 80  },
-                            { label: "Maximum", val: 100 }
-                        ]
-                        delegate: Rectangle {
+                    Flow {
+                        Layout.fillWidth: true
+                        spacing: 10
+
+                        Repeater {
+                            model: ["Flat", "Bass boost", "Vocal", "Electronic", "Acoustic", "Custom"]
+                            delegate: Rectangle {
+                                height: 34
+                                width: profileLabel.implicitWidth + 28
+                                radius: 8
+                                property bool sel: AudioBackend.activeEqProfile === modelData
+                                color: sel ? root.accent : globalBg4
+                                border.width: 1
+                                border.color: sel ? root.accent : globalBorder0
+                                Behavior on color { ColorAnimation { duration: 120 } }
+
+                                Text {
+                                    id: profileLabel
+                                    anchors.centerIn: parent
+                                    text: modelData
+                                    font { pixelSize: 12; family: "Inter" }
+                                    font.weight: sel ? Font.Medium : Font.Normal
+                                    color: sel ? "#FFFFFF" : root.textMid
+                                }
+
+                                MouseArea {
+                                    anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                    onClicked: AudioBackend.activeEqProfile = modelData
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Right Column (Spatial Audio)
+            ColumnLayout {
+                Layout.fillWidth: true
+                Layout.preferredWidth: 380
+                spacing: 16
+                Layout.alignment: Qt.AlignTop
+
+                SettingsCard {
+                    Layout.fillWidth: true
+                    title: "SPATIAL AUDIO"
+
+                    ColumnLayout {
+                        Layout.fillWidth: true
+                        spacing: 14
+
+                        RowLayout {
                             Layout.fillWidth: true
-                            height: 28; radius: 8
-                            property bool sel: AudioBackend.spatialWidth === modelData.val
-                            color: sel ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.2)
-                                       : globalBg4
-                            border.width: 1
-                            border.color: sel ? root.accent : globalBorder0
-                            Behavior on color { ColorAnimation { duration: 100 } }
+                            ColumnLayout {
+                                spacing: 3
+                                Text {
+                                    text: "Virtual stereo widening"
+                                    font { pixelSize: 13; family: "Inter" }
+                                    font.weight: Font.Medium
+                                    color: root.textHigh
+                                }
+                                Text {
+                                    text: "Haas-effect delay. Best with headphones."
+                                    font { pixelSize: 12; family: "Inter" }
+                                    color: root.textLow
+                                    wrapMode: Text.WordWrap
+                                    Layout.fillWidth: true
+                                }
+                            }
+                            TitanSwitch {
+                                onColor: root.accent
+                                checked: AudioBackend.spatialAudio
+                                onCheckedChanged: AudioBackend.spatialAudio = checked
+                            }
+                        }
+
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            RowLayout {
+                                Layout.fillWidth: true
+                                Text {
+                                    text: "Width"
+                                    font { pixelSize: 12; family: "Inter" }
+                                    font.weight: Font.Medium
+                                    color: root.textMid
+                                }
+                                Item { Layout.fillWidth: true }
+                                Text {
+                                    text: AudioBackend.spatialWidth + "%"
+                                    font { pixelSize: 13; family: "Inter" }
+                                    font.weight: Font.DemiBold
+                                    color: root.accent
+                                }
+                            }
+
+                            TitanSlider {
+                                Layout.fillWidth: true
+                                from: 0; to: 100; stepSize: 1
+                                value: AudioBackend.spatialWidth
+                                onMoved: AudioBackend.spatialWidth = value
+                                fillColor: root.accent
+                            }
+                        }
+
+                        // Spatial Presets Stack
+                        ColumnLayout {
+                            Layout.fillWidth: true
+                            spacing: 8
+
+                            Repeater {
+                                model: [
+                                    { label: "Subtle",  val: 30  },
+                                    { label: "Natural", val: 60  },
+                                    { label: "Wide",    val: 80  },
+                                    { label: "Maximum", val: 100 }
+                                ]
+                                delegate: Rectangle {
+                                    Layout.fillWidth: true
+                                    height: 38; radius: 8
+                                    property bool sel: AudioBackend.spatialWidth === modelData.val
+                                    color: sel ? root.accent : globalBg4
+                                    border.width: 1
+                                    border.color: sel ? root.accent : globalBorder0
+                                    Behavior on color { ColorAnimation { duration: 120 } }
+
+                                    Text {
+                                        anchors.centerIn: parent
+                                        text: modelData.label
+                                        font { pixelSize: 13; family: "Inter" }
+                                        font.weight: sel ? Font.Medium : Font.Normal
+                                        color: sel ? "#FFFFFF" : root.textMid
+                                    }
+
+                                    MouseArea {
+                                        anchors.fill: parent; cursorShape: Qt.PointingHandCursor
+                                        onClicked: AudioBackend.spatialWidth = modelData.val
+                                    }
+                                }
+                            }
+                        }
+
+                        Item { height: 4 }
+
+                        // Open Mixer Action Button
+                        Rectangle {
+                            Layout.fillWidth: true; height: 40; radius: 8
+                            color: globalBg4; border.width: 1; border.color: globalBorder0
 
                             Text {
                                 anchors.centerIn: parent
-                                text: modelData.label
-                                font { pixelSize: 11; family: "Inter" }
-                                font.weight: sel ? Font.DemiBold : Font.Normal
-                                color: sel ? root.accent : root.textMid
+                                text: "Open mixer"
+                                font { pixelSize: 13; family: "Inter" }
+                                font.weight: Font.Medium
+                                color: root.textHigh
                             }
 
                             MouseArea {
-                                anchors.fill: parent
-                                cursorShape: Qt.PointingHandCursor
-                                onClicked: AudioBackend.spatialWidth = modelData.val
+                                anchors.fill: parent; hoverEnabled: true; cursorShape: Qt.PointingHandCursor
+                                onClicked: AudioBackend.openMixer()
                             }
                         }
                     }
@@ -452,39 +410,39 @@ ScrollView {
             }
         }
 
-        Item { height: 12 }
+        Item { height: 16 }
 
-        // ── Audio Visualizer ─────────────────────────────────────
+        // ── Audio Visualizer Section ─────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Audio Visualizer"
+            title: "AUDIO VISUALIZER"
 
             Item {
                 Layout.fillWidth: true
-                height: 72
+                height: 60
 
                 Row {
-                    anchors { bottom: parent.bottom; horizontalCenter: parent.horizontalCenter }
-                    spacing: 4
+                    anchors { centerIn: parent }
+                    spacing: 6
 
                     Repeater {
-                        model: 24
+                        model: 18
                         Item {
-                            width: 12; height: 72
+                            width: 6; height: 50
                             anchors.bottom: parent ? parent.bottom : undefined
 
                             property real targetH: {
-                                if (AudioBackend.masterMuted) return 3;
+                                if (AudioBackend.masterMuted) return 6;
                                 var levels = AudioBackend.eqLevels;
                                 if (levels && levels.length > index) {
                                     var val = levels[index];
-                                    return 6 + (val / 100.0) * 60; // scale 0-100 to 6-66px
+                                    return 6 + (val / 100.0) * 44;
                                 }
-                                return 6;
+                                return 6 + Math.sin((index + Date.now() / 150) * 0.5) * 15 + 15;
                             }
                             
-                            Behavior on targetH { NumberAnimation { duration: 50; easing.type: Easing.OutQuad } }
+                            Behavior on targetH { NumberAnimation { duration: 60; easing.type: Easing.OutQuad } }
 
                             Rectangle {
                                 anchors.bottom: parent.bottom
@@ -492,20 +450,12 @@ ScrollView {
                                 height: parent.targetH
                                 radius: 3
                                 color: root.accent
-                                opacity: 0.5 + (index / 24) * 0.4
+                                opacity: 0.6 + (index / 18) * 0.4
                             }
                         }
                     }
                 }
             }
-        }
-
-        Item { height: 24 }
-
-        RowLayout {
-            Layout.leftMargin: 24; Layout.rightMargin: 24
-            Item { Layout.fillWidth: true }
-            TitanButton { text: "Open Mixer"; primary: false; width: 130; onClicked: AudioBackend.openMixer() }
         }
 
         Item { height: 28 }

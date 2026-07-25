@@ -25,7 +25,9 @@ fi
 
 
 
+mkdir -p build
 cd build
+rm -rf .rcc
 cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -Wno-dev
 make -j$(nproc)
 echo "BUILD DONE"
