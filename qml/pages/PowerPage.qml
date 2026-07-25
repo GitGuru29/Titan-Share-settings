@@ -8,9 +8,10 @@ ScrollView {
     contentWidth: -1
     ScrollBar.vertical.policy: ScrollBar.AsNeeded
 
-    property color textHigh: globalTextHigh
-    property color textMid:  globalTextMid
-    property color textLow:  globalTextLow
+    property color textHigh: isDarkTheme ? "#FFFFFF" : "#111111"
+    property color textMid:  isDarkTheme ? "#CCCCCC" : "#444444"
+    property color textSub:  isDarkTheme ? "#A0A0A8" : "#666666"
+    property color textLow:  isDarkTheme ? "#808088" : "#888888"
     property color accent:   SettingsBackend.accentColor
     property color green:    "#4CAF82"
     property color orange:   "#D4853A"
@@ -102,7 +103,7 @@ ScrollView {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
             height: 76; radius: 10
-            color: globalBg3
+            color: isDarkTheme ? "#1A1A1E" : globalBg3
             border.width: 1; border.color: globalBorder1
 
             RowLayout {
@@ -121,7 +122,7 @@ ScrollView {
                         font { pixelSize: 9; family: "Inter" }
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.2
-                        color: root.textLow
+                        color: root.textSub
                     }
 
                     Row {
@@ -159,7 +160,7 @@ ScrollView {
                         font { pixelSize: 9; family: "Inter" }
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.2
-                        color: root.textLow
+                        color: root.textSub
                     }
 
                     Row {
@@ -197,7 +198,7 @@ ScrollView {
                         font { pixelSize: 9; family: "Inter" }
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.2
-                        color: root.textLow
+                        color: root.textSub
                     }
 
                     Text {
@@ -222,7 +223,7 @@ ScrollView {
                         font { pixelSize: 9; family: "Inter" }
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.2
-                        color: root.textLow
+                        color: root.textSub
                     }
 
                     Text {
@@ -254,7 +255,7 @@ ScrollView {
             // Left Column (Power Mode, Timeouts, Live Draw)
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 600
+                Layout.preferredWidth: 580
                 spacing: 24
                 Layout.alignment: Qt.AlignTop
 
@@ -268,7 +269,7 @@ ScrollView {
                         font { pixelSize: 10; family: "Inter" }
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.2
-                        color: root.textLow
+                        color: root.textSub
                     }
 
                     RowLayout {
@@ -283,12 +284,14 @@ ScrollView {
                             ]
                             delegate: Rectangle {
                                 Layout.fillWidth: true
-                                height: 100
+                                height: 96
                                 radius: 8
                                 property bool sel: SettingsBackend.powerProfile === modelData.name
 
-                                color: sel ? Qt.tint(globalBg4, Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, isDarkTheme ? 0.15 : 0.08)) : globalBg4
-                                border.width: 1
+                                color: sel 
+                                       ? Qt.tint(isDarkTheme ? "#1A1A1E" : "#FFFFFF", Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, isDarkTheme ? 0.25 : 0.12)) 
+                                       : (isDarkTheme ? "#1E1E22" : globalBg4)
+                                border.width: sel ? 2 : 1
                                 border.color: sel ? modelData.accent : globalBorder0
                                 Behavior on color       { ColorAnimation { duration: 180 } }
                                 Behavior on border.color{ ColorAnimation { duration: 180 } }
@@ -307,7 +310,7 @@ ScrollView {
                                     Text {
                                         text: modelData.desc
                                         font { pixelSize: 11; family: "Inter" }
-                                        color: root.textLow
+                                        color: root.textSub
                                         Layout.alignment: Qt.AlignHCenter
                                     }
                                 }
@@ -334,7 +337,7 @@ ScrollView {
                         font { pixelSize: 10; family: "Inter" }
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.2
-                        color: root.textLow
+                        color: root.textSub
                     }
 
                     // Screen Off
@@ -359,7 +362,7 @@ ScrollView {
                                     width: optLabel1.implicitWidth + 32
                                     radius: 8
                                     property bool sel: SettingsBackend.screenTimeout === modelData.val
-                                    color: sel ? root.accent : "transparent"
+                                    color: sel ? root.accent : (isDarkTheme ? "#222228" : "#E8E8EE")
                                     border.width: 1
                                     border.color: sel ? root.accent : globalBorder0
                                     Behavior on color { ColorAnimation { duration: 120 } }
@@ -406,7 +409,7 @@ ScrollView {
                                     width: optLabel2.implicitWidth + 32
                                     radius: 8
                                     property bool sel: SettingsBackend.suspendTimeout === modelData.val
-                                    color: sel ? root.accent : "transparent"
+                                    color: sel ? root.accent : (isDarkTheme ? "#222228" : "#E8E8EE")
                                     border.width: 1
                                     border.color: sel ? root.accent : globalBorder0
                                     Behavior on color { ColorAnimation { duration: 120 } }
@@ -442,7 +445,7 @@ ScrollView {
                         font { pixelSize: 10; family: "Inter" }
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.2
-                        color: root.textLow
+                        color: root.textSub
                     }
 
                     Row {
@@ -452,7 +455,8 @@ ScrollView {
                                 var w = SystemInfo.powerNow / 1000000
                                 return w > 0 ? w.toFixed(1) : "—"
                             }
-                            font { pixelSize: 22; family: "Inter" }
+                            font { pixelSize: 24; family: "Inter" }
+                            font.weight: Font.Bold
                             color: root.textHigh
                             anchors.baseline: wText.baseline
                         }
@@ -460,7 +464,7 @@ ScrollView {
                             id: wText
                             text: "W draw"
                             font { pixelSize: 13; family: "Inter" }
-                            color: root.textLow
+                            color: root.textSub
                             anchors.bottom: parent.bottom
                             anchors.bottomMargin: 3
                             visible: (SystemInfo.powerNow / 1000000) > 0
@@ -472,7 +476,7 @@ ScrollView {
             // Right Column (Charging State, Battery Settings)
             ColumnLayout {
                 Layout.fillWidth: true
-                Layout.preferredWidth: 380
+                Layout.preferredWidth: 360
                 spacing: 24
                 Layout.alignment: Qt.AlignTop
 
@@ -486,18 +490,18 @@ ScrollView {
                         font { pixelSize: 10; family: "Inter" }
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.2
-                        color: root.textLow
+                        color: root.textSub
                     }
 
                     Rectangle {
                         Layout.fillWidth: true
                         height: 80; radius: 8
                         color: SystemInfo.batteryCharging 
-                                ? Qt.rgba(0.30, 0.69, 0.51, 0.15) 
-                                : globalBg4
+                                ? (isDarkTheme ? "#152E22" : Qt.rgba(0.30, 0.69, 0.51, 0.20))
+                                : (isDarkTheme ? "#1E1E22" : globalBg4)
                         border.width: 1
                         border.color: SystemInfo.batteryCharging 
-                                ? Qt.rgba(0.30, 0.69, 0.51, 0.35) 
+                                ? "#388E62" 
                                 : globalBorder0
                         Behavior on color { ColorAnimation { duration: 300 } }
                         Behavior on border.color { ColorAnimation { duration: 300 } }
@@ -516,7 +520,7 @@ ScrollView {
                             Text {
                                 text: "Battery at " + SystemInfo.batteryLevel + "%"
                                 font { pixelSize: 12; family: "Inter" }
-                                color: root.textLow
+                                color: root.textSub
                                 Layout.alignment: Qt.AlignHCenter
                             }
                         }
@@ -533,7 +537,7 @@ ScrollView {
                         font { pixelSize: 10; family: "Inter" }
                         font.weight: Font.DemiBold
                         font.letterSpacing: 1.2
-                        color: root.textLow
+                        color: root.textSub
                     }
 
                     // Battery Protection
@@ -553,7 +557,7 @@ ScrollView {
                             Text {
                                 text: "Caps charge at 80% when plugged in all day."
                                 font { pixelSize: 12; family: "Inter" }
-                                color: root.textLow
+                                color: root.textSub
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
                             }
@@ -585,7 +589,7 @@ ScrollView {
                             Text {
                                 text: "Faster charging, generates more heat."
                                 font { pixelSize: 12; family: "Inter" }
-                                color: root.textLow
+                                color: root.textSub
                                 wrapMode: Text.WordWrap
                                 Layout.fillWidth: true
                             }
