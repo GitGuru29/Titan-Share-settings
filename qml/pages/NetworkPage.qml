@@ -243,14 +243,14 @@ Item {
                 Layout.fillWidth: true
                 Layout.leftMargin: 24; Layout.rightMargin: 24
                 spacing: 16
-                alignment: Qt.AlignTop
+                Layout.alignment: Qt.AlignTop
 
                 // Left Column (Speed Test & Available Networks)
                 ColumnLayout {
                     Layout.fillWidth: true
                     Layout.preferredWidth: 600
                     spacing: 16
-                    alignment: Qt.AlignTop
+                    Layout.alignment: Qt.AlignTop
 
                     // SPEED TEST Card
                     SettingsCard {
@@ -437,7 +437,7 @@ Item {
                     Layout.fillWidth: true
                     Layout.preferredWidth: 380
                     spacing: 16
-                    alignment: Qt.AlignTop
+                    Layout.alignment: Qt.AlignTop
 
                     SettingsCard {
                         Layout.fillWidth: true
