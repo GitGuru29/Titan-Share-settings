@@ -17,22 +17,49 @@ ScrollView {
         width: root.availableWidth
         spacing: 0
 
-        Item { height: 28 }
+        Item { height: 20 }
 
-        // ── Brightness ───────────────────────────────────────────
+        // ── Page Header ──────────────────────────────────────────
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            spacing: 4
+
+            Text {
+                text: "Display"
+                font { pixelSize: 22; family: "Inter" }
+                font.weight: Font.Bold
+                color: root.textHigh
+            }
+        }
+
+        Item { height: 24 }
+
+        // ── Brightness Card ──────────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Brightness"
 
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
                 spacing: 12
 
-                Text {
-                    text: "○"
-                    font { pixelSize: 14; family: "Inter" }
-                    color: root.textLow
+                RowLayout {
+                    Layout.fillWidth: true
+                    Text {
+                        text: "BRIGHTNESS"
+                        font { pixelSize: 10; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        font.letterSpacing: 1.2
+                        color: root.textLow
+                    }
+                    Item { Layout.fillWidth: true }
+                    Text {
+                        text: Math.round(DisplayManager.brightness) + "%"
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        color: root.accent
+                    }
                 }
 
                 TitanSlider {
@@ -40,175 +67,188 @@ ScrollView {
                     from: 0; to: 100; stepSize: 1
                     value: DisplayManager.brightness
                     onMoved: DisplayManager.brightness = value
-                    fillColor: {
-                        var t = DisplayManager.brightness / 100
-                        return Qt.rgba(0.9, 0.7 * t + 0.3, 0.2, 1.0)
-                    }
-                }
-
-                Text {
-                    text: "◉"
-                    font { pixelSize: 14; family: "Inter" }
-                    color: root.textMid
-                }
-
-                Text {
-                    text: DisplayManager.brightness + "%"
-                    font { pixelSize: 12; family: "Inter" }
-                    font.weight: Font.Medium
-                    color: root.accent; Layout.preferredWidth: 40
-                    horizontalAlignment: Text.AlignRight
+                    fillColor: root.accent
                 }
             }
         }
 
-        Item { height: 12 }
+        Item { height: 16 }
 
-        // ── Night Light ──────────────────────────────────────────
+        // ── Night Light Card ─────────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
 
             RowLayout {
                 Layout.fillWidth: true
-
-                Column {
-                    spacing: 4
+                ColumnLayout {
+                    spacing: 3
                     Text {
-                        text: "Night Light"
+                        text: "Night light"
                         font { pixelSize: 13; family: "Inter" }
-                        font.weight: Font.DemiBold
+                        font.weight: Font.Medium
                         color: root.textHigh
                     }
                     Text {
                         text: "Reduces blue light via wlsunset"
                         font { pixelSize: 12; family: "Inter" }
-                        color: root.textMid
+                        color: root.textLow
                     }
                 }
                 Item { Layout.fillWidth: true }
                 TitanSwitch {
-                    onColor: "#D4853A"
+                    onColor: root.accent
                     checked: DisplayManager.nightLightEnabled
                     onCheckedChanged: DisplayManager.nightLightEnabled = checked
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 8; Layout.bottomMargin: 8 }
 
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 12
+                spacing: 8
 
-                Column {
-                    spacing: 4
-                    Text {
-                        text: "Color Temperature"
-                        font { pixelSize: 13; family: "Inter" }
-                        font.weight: Font.Medium
-                        color: root.textHigh
-                        opacity: DisplayManager.nightLightEnabled ? 1.0 : 0.35
-                        Behavior on opacity { NumberAnimation { duration: 180 } }
+                RowLayout {
+                    Layout.fillWidth: true
+                    ColumnLayout {
+                        spacing: 3
+                        Text {
+                            text: "Color temperature"
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.Medium
+                            color: root.textHigh
+                            opacity: DisplayManager.nightLightEnabled ? 1.0 : 0.4
+                        }
+                        Text {
+                            text: "Active once night light is on"
+                            font { pixelSize: 12; family: "Inter" }
+                            color: root.textLow
+                            opacity: DisplayManager.nightLightEnabled ? 1.0 : 0.4
+                        }
                     }
-                    Text {
-                        text: DisplayManager.nightLightTemp + "K"
-                        font { pixelSize: 12; family: "Inter" }
-                        color: root.textMid
-                        opacity: DisplayManager.nightLightEnabled ? 1.0 : 0.35
-                        Behavior on opacity { NumberAnimation { duration: 180 } }
+                    Item { Layout.fillWidth: true }
+
+                    RowLayout {
+                        spacing: 8
+                        opacity: DisplayManager.nightLightEnabled ? 1.0 : 0.4
+
+                        Rectangle {
+                            width: 14; height: 14; radius: 7
+                            color: Qt.hsla(0.08, 0.7, 0.5, 1.0)
+                        }
+
+                        Text {
+                            text: DisplayManager.nightLightTemp + "K"
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.DemiBold
+                            color: root.textHigh
+                        }
                     }
                 }
-                Item { Layout.fillWidth: true }
 
                 TitanSlider {
-                    width: 180
+                    Layout.fillWidth: true
                     from: 1000; to: 6500; stepSize: 100
                     value: DisplayManager.nightLightTemp
                     onMoved: DisplayManager.nightLightTemp = value
                     enabled: DisplayManager.nightLightEnabled
-                    opacity: DisplayManager.nightLightEnabled ? 1.0 : 0.35
-                    Behavior on opacity { NumberAnimation { duration: 180 } }
-                    fillColor: {
-                        var t = DisplayManager.nightLightTemp / 6500
-                        return Qt.rgba(1.0, 0.5 + t * 0.4, t * 0.7, 1.0)
-                    }
+                    opacity: DisplayManager.nightLightEnabled ? 1.0 : 0.4
+                    fillColor: Qt.hsla(0.08, 0.7, 0.5, 1.0)
                 }
             }
         }
 
-        Item { height: 12 }
+        Item { height: 16 }
 
-        // ── Display info ─────────────────────────────────────────
+        // ── Display Info Card ────────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Display Info"
 
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: 14
 
-                Repeater {
-                    model: [
-                        { label: "Resolution",   value: DisplayManager.resolution                     },
-                        { label: "Refresh Rate", value: DisplayManager.refreshRate.toFixed(1) + " Hz" }
-                    ]
-                    delegate: Rectangle {
-                        Layout.fillWidth: true; height: 64; radius: 8
-                        color: globalBg3; border.width: 1; border.color: globalBorder1
-                        Layout.rightMargin: index === 0 ? 6 : 0
+                Text {
+                    text: "DISPLAY INFO"
+                    font { pixelSize: 10; family: "Inter" }
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 1.2
+                    color: root.textLow
+                }
 
-                        Column {
-                            anchors { left: parent.left; leftMargin: 14; verticalCenter: parent.verticalCenter }
-                            spacing: 5
-                            Text {
-                                text: modelData.label.toUpperCase()
-                                font { pixelSize: 9; family: "Inter" }
-                                font.weight: Font.DemiBold
-                                font.letterSpacing: 1.2
-                                color: root.textLow
-                            }
-                            Text {
-                                text: modelData.value
-                                font { pixelSize: 20; family: "Inter" }
-                                font.weight: Font.Bold
-                                color: root.textHigh
+                RowLayout {
+                    Layout.fillWidth: true
+                    spacing: 12
+
+                    Repeater {
+                        model: [
+                            { label: "RESOLUTION",   value: DisplayManager.resolution                     },
+                            { label: "REFRESH RATE", value: DisplayManager.refreshRate.toFixed(1) + " Hz" }
+                        ]
+                        delegate: Rectangle {
+                            Layout.fillWidth: true; height: 72; radius: 10
+                            color: globalBg3; border.width: 1; border.color: globalBorder1
+
+                            ColumnLayout {
+                                anchors { fill: parent; margins: 14 }
+                                spacing: 4
+
+                                Text {
+                                    text: modelData.label
+                                    font { pixelSize: 9; family: "Inter" }
+                                    font.weight: Font.DemiBold
+                                    font.letterSpacing: 1.2
+                                    color: root.textLow
+                                }
+
+                                Text {
+                                    text: modelData.value
+                                    font { pixelSize: 20; family: "Inter" }
+                                    font.weight: Font.Bold
+                                    color: root.textHigh
+                                }
                             }
                         }
                     }
                 }
-            }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 10; Layout.bottomMargin: 10 }
+                Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1 }
 
-            RowLayout {
-                Layout.fillWidth: true
-                Column {
-                    spacing: 4
-                    Text {
-                        text: "Display Scale"
-                        font { pixelSize: 13; family: "Inter" }
-                        font.weight: Font.Medium
-                        color: root.textHigh
+                RowLayout {
+                    Layout.fillWidth: true
+                    ColumnLayout {
+                        spacing: 3
+                        Text {
+                            text: "Display scale"
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.Medium
+                            color: root.textHigh
+                        }
+                        Text {
+                            text: "Hyprland monitor scale factor"
+                            font { pixelSize: 12; family: "Inter" }
+                            color: root.textLow
+                        }
                     }
-                    Text {
-                        text: "Hyprland monitor scale factor"
-                        font { pixelSize: 12; family: "Inter" }
-                        color: root.textMid
+                    Item { Layout.fillWidth: true }
+
+                    RowLayout {
+                        spacing: 12
+                        TitanSlider {
+                            width: 160; from: 0.5; to: 3.0; stepSize: 0.25
+                            value: DisplayManager.scaleFactor
+                            onMoved: DisplayManager.scaleFactor = value
+                            fillColor: root.accent
+                        }
+                        Text {
+                            text: DisplayManager.scaleFactor.toFixed(2) + "×"
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.DemiBold
+                            color: root.accent
+                        }
                     }
-                }
-                Item { Layout.fillWidth: true }
-                TitanSlider {
-                    width: 160; from: 0.5; to: 3.0; stepSize: 0.25
-                    value: DisplayManager.scaleFactor
-                    onMoved: DisplayManager.scaleFactor = value
-                }
-                Text {
-                    text: DisplayManager.scaleFactor.toFixed(2) + "×"
-                    font { pixelSize: 12; family: "Inter" }
-                    font.weight: Font.Medium
-                    color: root.accent; Layout.preferredWidth: 48
-                    horizontalAlignment: Text.AlignRight
                 }
             }
         }
