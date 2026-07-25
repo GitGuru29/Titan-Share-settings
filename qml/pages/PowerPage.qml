@@ -39,7 +39,6 @@ ScrollView {
         if (!found) {
             var lbl = current >= 60 ? Math.round(current / 60) + " m" : current + " s";
             opts.push({ label: lbl, val: current });
-            // Sort by val
             opts.sort(function(a, b) { return a.val - b.val; });
         }
         return opts;
@@ -68,9 +67,8 @@ ScrollView {
         if (!found) {
             var lbl = current >= 3600 ? Math.round(current / 3600) + " h" : Math.round(current / 60) + " m";
             opts.push({ label: lbl, val: current });
-            // Sort by val, keeping Never (99999) at the end or start
             opts.sort(function(a, b) {
-                if (a.val === 99999) return -1; // Never first
+                if (a.val === 99999) return -1;
                 if (b.val === 99999) return 1;
                 return a.val - b.val;
             });
@@ -82,9 +80,25 @@ ScrollView {
         width: root.availableWidth
         spacing: 0
 
-        Item { height: 28 }
+        Item { height: 20 }
 
-        // ── Power profile selector ───────────────────────────────
+        // ── Page Header ──────────────────────────────────────────
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            spacing: 4
+
+            Text {
+                text: "Power"
+                font { pixelSize: 22; family: "Inter" }
+                font.weight: Font.Bold
+                color: root.textHigh
+            }
+        }
+
+        Item { height: 20 }
+
+        // ── Power Profile Selector ───────────────────────────────
         RowLayout {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
@@ -96,22 +110,19 @@ ScrollView {
                         name: "Power Saver",
                         desc: "Maximize battery life",
                         accent: "#4CAF82",
-                        icon: "qrc:/ArchTitanSettings/assets/icons/powersaving.png",
-                        colorize: false
+                        icon: "qrc:/ArchTitanSettings/assets/icons/powersaving.png"
                     },
                     { 
                         name: "Balanced",
                         desc: "Smart performance",
                         accent: "#4C8BF5",
-                        icon: "qrc:/ArchTitanSettings/assets/icons/balanced.png",
-                        colorize: false
+                        icon: "qrc:/ArchTitanSettings/assets/icons/balanced.png"
                     },
                     { 
                         name: "Performance",
                         desc: "Max CPU performance",
                         accent: "#D4853A",
-                        icon: "qrc:/ArchTitanSettings/assets/icons/performance_nobg.png",
-                        colorize: false
+                        icon: "qrc:/ArchTitanSettings/assets/icons/performance_nobg.png"
                     }
                 ]
                 delegate: Rectangle {
@@ -136,23 +147,11 @@ ScrollView {
                             border.color: Qt.rgba(Qt.color(modelData.accent).r, Qt.color(modelData.accent).g, Qt.color(modelData.accent).b, sel ? 0.5 : 0.2)
 
                             Image {
-                                id: profileIcon
                                 anchors.centerIn: parent
-                                width: modelData.colorize ? 24 : 52
-                                height: modelData.colorize ? 24 : 52
-                                sourceSize: modelData.colorize ? Qt.size(24, 24) : undefined
+                                width: 52; height: 52
                                 source: modelData.icon
                                 fillMode: Image.PreserveAspectFit
                                 smooth: true
-                                mipmap: !modelData.colorize
-                                visible: !modelData.colorize
-                            }
-                            MultiEffect {
-                                anchors.fill: profileIcon
-                                source: profileIcon
-                                colorization: 1.0
-                                colorizationColor: modelData.accent
-                                visible: modelData.colorize
                             }
                         }
 
@@ -183,15 +182,15 @@ ScrollView {
 
         Item { height: 16 }
 
-        // ── Timeouts ─────────────────────────────────────────────
+        // ── Timeouts Card ────────────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Timeouts"
+            title: "TIMEOUTS"
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 12
+                spacing: 14
 
                 // Screen Off
                 ColumnLayout {
@@ -207,7 +206,7 @@ ScrollView {
                     Text {
                         text: "Idle screen timeout"
                         font { pixelSize: 11; family: "Inter" }
-                        color: root.textMid
+                        color: root.textLow
                     }
 
                     Item { height: 2 }
@@ -222,12 +221,10 @@ ScrollView {
                                 height: 28
                                 width: optLabel1.implicitWidth + 24
                                 radius: 6
-                                color: SettingsBackend.screenTimeout === modelData.val
-                                       ? (isDarkTheme ? Qt.tint(globalBg3, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.25))
-                                                      : Qt.tint(globalBg3, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.15)))
-                                       : globalBg4
+                                property bool sel: SettingsBackend.screenTimeout === modelData.val
+                                color: sel ? root.accent : globalBg4
                                 border.width: 1
-                                border.color: SettingsBackend.screenTimeout === modelData.val ? root.accent : globalBorder0
+                                border.color: sel ? root.accent : globalBorder0
                                 Behavior on color { ColorAnimation { duration: 120 } }
 
                                 Text {
@@ -235,8 +232,8 @@ ScrollView {
                                     anchors.centerIn: parent
                                     text: modelData.label
                                     font { pixelSize: 12; family: "Inter" }
-                                    font.weight: SettingsBackend.screenTimeout === modelData.val ? Font.DemiBold : Font.Normal
-                                    color: SettingsBackend.screenTimeout === modelData.val ? root.textHigh : root.textMid
+                                    font.weight: sel ? Font.Medium : Font.Normal
+                                    color: sel ? "#FFFFFF" : root.textMid
                                 }
 
                                 MouseArea {
@@ -249,7 +246,7 @@ ScrollView {
                     }
                 }
 
-                Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 4; Layout.bottomMargin: 4 }
+                Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1 }
 
                 // Suspend
                 ColumnLayout {
@@ -265,7 +262,7 @@ ScrollView {
                     Text {
                         text: "System suspend timeout"
                         font { pixelSize: 11; family: "Inter" }
-                        color: root.textMid
+                        color: root.textLow
                     }
 
                     Item { height: 2 }
@@ -280,12 +277,10 @@ ScrollView {
                                 height: 28
                                 width: optLabel2.implicitWidth + 24
                                 radius: 6
-                                color: SettingsBackend.suspendTimeout === modelData.val
-                                       ? (isDarkTheme ? Qt.tint(globalBg3, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.25))
-                                                      : Qt.tint(globalBg3, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.15)))
-                                       : globalBg4
+                                property bool sel: SettingsBackend.suspendTimeout === modelData.val
+                                color: sel ? root.accent : globalBg4
                                 border.width: 1
-                                border.color: SettingsBackend.suspendTimeout === modelData.val ? root.accent : globalBorder0
+                                border.color: sel ? root.accent : globalBorder0
                                 Behavior on color { ColorAnimation { duration: 120 } }
 
                                 Text {
@@ -293,8 +288,8 @@ ScrollView {
                                     anchors.centerIn: parent
                                     text: modelData.label
                                     font { pixelSize: 12; family: "Inter" }
-                                    font.weight: SettingsBackend.suspendTimeout === modelData.val ? Font.DemiBold : Font.Normal
-                                    color: SettingsBackend.suspendTimeout === modelData.val ? root.textHigh : root.textMid
+                                    font.weight: sel ? Font.Medium : Font.Normal
+                                    color: sel ? "#FFFFFF" : root.textMid
                                 }
 
                                 MouseArea {
@@ -309,25 +304,24 @@ ScrollView {
             }
         }
 
-        Item { height: 12 }
+        Item { height: 16 }
 
-        // ── Battery ──────────────────────────────────────────────
+        // ── Battery Card ─────────────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Battery"
+            title: "BATTERY"
 
             ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 0
+                spacing: 16
 
-                // ── Level row ────────────────────────────────────
+                // Battery level header
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 20
 
-                    // Battery level text
-                    Column {
+                    ColumnLayout {
                         spacing: 4
                         Text {
                             text: SystemInfo.batteryLevel + "%"
@@ -338,17 +332,18 @@ ScrollView {
                             Behavior on color { ColorAnimation { duration: 500 } }
                         }
                         Text {
-                            text: SystemInfo.batteryCharging ? "⚡  Charging" : (SystemInfo.acConnected ? "🔌  Plugged In" : "🔋  On Battery")
+                            text: SystemInfo.batteryCharging ? "⚡ Charging" : (SystemInfo.acConnected ? "🔌 Plugged In" : "🔋 On Battery")
                             font { pixelSize: 12; family: "Inter" }
-                            color: root.textMid
+                            color: root.textLow
                         }
                     }
 
                     Item { Layout.fillWidth: true }
 
-                    // Battery bar
+                    // Horizontal battery bar graphics
                     Item {
-                        width: 120; height: 48; Layout.alignment: Qt.AlignVCenter
+                        width: 120; height: 48
+                        Layout.alignment: Qt.AlignVCenter
 
                         Rectangle {
                             anchors { left: parent.left; top: parent.top; bottom: parent.bottom }
@@ -372,14 +367,7 @@ ScrollView {
                     }
                 }
 
-                // ── Divider ──────────────────────────────────────
-                Rectangle {
-                    Layout.fillWidth: true; height: 1
-                    color: globalBorder1
-                    Layout.topMargin: 16; Layout.bottomMargin: 16
-                }
-
-                // ── Health & Cycles row ──────────────────────────
+                // Grid Row 1 (Health, Cycles, Condition)
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 12
@@ -387,38 +375,24 @@ ScrollView {
                     // Battery Health tile
                     Rectangle {
                         Layout.fillWidth: true; height: 72; radius: 10
-                        color: globalBg4
-                        border.width: 1
-                        border.color: {
-                            var h = SystemInfo.batteryHealth
-                            if (h < 0) return globalBorder1
-                            return h >= 80 ? Qt.rgba(0.30, 0.69, 0.51, 0.45)
-                                 : h >= 50 ? Qt.rgba(0.83, 0.52, 0.23, 0.45)
-                                           : Qt.rgba(0.88, 0.36, 0.42, 0.45)
-                        }
-                        Behavior on border.color { ColorAnimation { duration: 400 } }
+                        color: globalBg4; border.width: 1; border.color: globalBorder1
 
-                        Column {
+                        ColumnLayout {
                             anchors.centerIn: parent
                             spacing: 4
 
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
                                 text: SystemInfo.batteryHealth >= 0 ? SystemInfo.batteryHealth + "%" : "N/A"
                                 font { pixelSize: 22; family: "Inter" }
                                 font.weight: Font.Bold
-                                color: {
-                                    var h = SystemInfo.batteryHealth
-                                    if (h < 0) return root.textLow
-                                    return h >= 80 ? root.green : h >= 50 ? root.orange : root.red
-                                }
-                                Behavior on color { ColorAnimation { duration: 400 } }
+                                color: SystemInfo.batteryHealth >= 80 ? root.green : root.orange
+                                Layout.alignment: Qt.AlignHCenter
                             }
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
                                 text: "Battery Health"
                                 font { pixelSize: 11; family: "Inter" }
                                 color: root.textLow
+                                Layout.alignment: Qt.AlignHCenter
                             }
                         }
                     }
@@ -426,515 +400,175 @@ ScrollView {
                     // Cycle Count tile
                     Rectangle {
                         Layout.fillWidth: true; height: 72; radius: 10
-                        color: globalBg4
-                        border.width: 1
-                        border.color: {
-                            var c = SystemInfo.batteryCycles
-                            if (c < 0) return globalBorder1
-                            return c < 300  ? Qt.rgba(0.30, 0.69, 0.51, 0.45)
-                                 : c < 700  ? Qt.rgba(0.83, 0.52, 0.23, 0.45)
-                                            : Qt.rgba(0.88, 0.36, 0.42, 0.45)
-                        }
-                        Behavior on border.color { ColorAnimation { duration: 400 } }
+                        color: globalBg4; border.width: 1; border.color: globalBorder1
 
-                        Column {
+                        ColumnLayout {
                             anchors.centerIn: parent
                             spacing: 4
 
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
                                 text: SystemInfo.batteryCycles >= 0 ? SystemInfo.batteryCycles : "N/A"
                                 font { pixelSize: 22; family: "Inter" }
                                 font.weight: Font.Bold
-                                color: {
-                                    var c = SystemInfo.batteryCycles
-                                    if (c < 0) return root.textLow
-                                    return c < 300 ? root.green : c < 700 ? root.orange : root.red
-                                }
-                                Behavior on color { ColorAnimation { duration: 400 } }
+                                color: root.orange
+                                Layout.alignment: Qt.AlignHCenter
                             }
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
                                 text: "Charge Cycles"
                                 font { pixelSize: 11; family: "Inter" }
                                 color: root.textLow
+                                Layout.alignment: Qt.AlignHCenter
                             }
                         }
                     }
 
-                    // Health description tile
+                    // Condition tile
                     Rectangle {
                         Layout.fillWidth: true; height: 72; radius: 10
-                        color: globalBg4
-                        border.width: 1; border.color: globalBorder1
+                        color: globalBg4; border.width: 1; border.color: globalBorder1
 
-                        Column {
+                        ColumnLayout {
                             anchors.centerIn: parent
                             spacing: 4
 
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
                                 text: {
                                     var h = SystemInfo.batteryHealth
                                     if (h < 0) return "Unknown"
                                     if (h >= 90) return "Excellent"
                                     if (h >= 80) return "Good"
                                     if (h >= 60) return "Fair"
-                                    if (h >= 40) return "Poor"
-                                    return "Replace"
+                                    return "Poor"
                                 }
                                 font { pixelSize: 18; family: "Inter" }
-                                font.weight: 600
-                                color: {
-                                    var h = SystemInfo.batteryHealth
-                                    if (h < 0) return root.textLow
-                                    return h >= 80 ? root.green : h >= 50 ? root.orange : root.red
-                                }
-                                Behavior on color { ColorAnimation { duration: 400 } }
+                                font.weight: Font.Bold
+                                color: root.green
+                                Layout.alignment: Qt.AlignHCenter
                             }
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
                                 text: "Condition"
                                 font { pixelSize: 11; family: "Inter" }
                                 color: root.textLow
+                                Layout.alignment: Qt.AlignHCenter
                             }
                         }
                     }
                 }
 
-                // ── Est. Runtime + Live Wattage row ──────────────
+                // Grid Row 2 (Est. Runtime / Status, Live Draw)
                 RowLayout {
                     Layout.fillWidth: true
                     spacing: 12
-                    Layout.topMargin: 12
 
-                    // Estimated Runtime tile
+                    // Charging / Runtime tile
                     Rectangle {
                         Layout.fillWidth: true; height: 72; radius: 10
-                        color: globalBg4
-                        border.width: 1
-                        border.color: {
-                            var r = SystemInfo.estimatedRuntime
-                            if (r < 0) return globalBorder1        // charging
-                            return r >= 2.0 ? Qt.rgba(0.30, 0.69, 0.51, 0.45)
-                                 : r >= 1.0 ? Qt.rgba(0.83, 0.52, 0.23, 0.45)
-                                            : Qt.rgba(0.88, 0.36, 0.42, 0.45)
-                        }
-                        Behavior on border.color { ColorAnimation { duration: 400 } }
+                        color: globalBg4; border.width: 1; border.color: globalBorder1
 
-                        Column {
+                        ColumnLayout {
                             anchors.centerIn: parent
                             spacing: 4
 
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: {
-                                    var r = SystemInfo.estimatedRuntime
-                                    if (r < 0) return "⚡"
-                                    var h = Math.floor(r)
-                                    var m = Math.round((r - h) * 60)
-                                    return h + "h " + m + "m"
-                                }
+                                text: SystemInfo.batteryCharging ? "⚡" : (SystemInfo.estimatedRuntime > 0 ? Math.floor(SystemInfo.estimatedRuntime) + "h " + Math.round((SystemInfo.estimatedRuntime % 1) * 60) + "m" : "—")
                                 font { pixelSize: 20; family: "Inter" }
                                 font.weight: Font.Bold
-                                color: {
-                                    var r = SystemInfo.estimatedRuntime
-                                    if (r < 0) return root.accent
-                                    return r >= 2.0 ? root.green : r >= 1.0 ? root.orange : root.red
-                                }
-                                Behavior on color { ColorAnimation { duration: 400 } }
+                                color: root.orange
+                                Layout.alignment: Qt.AlignHCenter
                             }
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
-                                text: SystemInfo.estimatedRuntime < 0 ? "Charging" : "Est. Runtime"
+                                text: SystemInfo.batteryCharging ? "Charging" : "Est. Runtime"
                                 font { pixelSize: 11; family: "Inter" }
                                 color: root.textLow
+                                Layout.alignment: Qt.AlignHCenter
                             }
                         }
                     }
 
-                    // Live Power Draw tile
+                    // Live Draw tile
                     Rectangle {
                         Layout.fillWidth: true; height: 72; radius: 10
-                        color: globalBg4
-                        border.width: 1
-                        border.color: {
-                            var w = SystemInfo.powerNow / 1000000
-                            if (w <= 0) return globalBorder1
-                            return w < 10 ? Qt.rgba(0.30, 0.69, 0.51, 0.45)
-                                 : w < 20 ? Qt.rgba(0.83, 0.52, 0.23, 0.45)
-                                          : Qt.rgba(0.88, 0.36, 0.42, 0.45)
-                        }
-                        Behavior on border.color { ColorAnimation { duration: 400 } }
+                        color: globalBg4; border.width: 1; border.color: globalBorder1
 
-                        Column {
+                        ColumnLayout {
                             anchors.centerIn: parent
                             spacing: 4
 
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
                                 text: {
                                     var w = SystemInfo.powerNow / 1000000
                                     return w > 0 ? w.toFixed(1) + " W" : "—"
                                 }
                                 font { pixelSize: 20; family: "Inter" }
                                 font.weight: Font.Bold
-                                color: {
-                                    var w = SystemInfo.powerNow / 1000000
-                                    if (w <= 0) return root.textLow
-                                    return w < 10 ? root.green : w < 20 ? root.orange : root.red
-                                }
-                                Behavior on color { ColorAnimation { duration: 400 } }
+                                color: root.textMid
+                                Layout.alignment: Qt.AlignHCenter
                             }
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
                                 text: "Live Draw"
                                 font { pixelSize: 11; family: "Inter" }
                                 color: root.textLow
+                                Layout.alignment: Qt.AlignHCenter
                             }
                         }
                     }
                 }
 
+                Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1 }
 
-                // ── Battery Protection (universal — adapts to hardware) ──
-                Loader {
-                    id: batteryProtectLoader
+                // Toggles Row (Battery Protection & Rapid Charge)
+                ColumnLayout {
                     Layout.fillWidth: true
+                    spacing: 14
 
-                    sourceComponent: Component {
+                    // Battery Protection
+                    RowLayout {
+                        Layout.fillWidth: true
                         ColumnLayout {
-                            spacing: 0
-
-                            Rectangle {
-                                Layout.fillWidth: true; height: 1
-                                color: globalBorder1
-                                Layout.topMargin: 16; Layout.bottomMargin: 16
+                            spacing: 3
+                            Text {
+                                text: "Battery Protection"
+                                font { pixelSize: 13; family: "Inter" }
+                                font.weight: Font.Medium
+                                color: root.textHigh
                             }
-
-                            // Content for SUPPORTED hardware
-                            ColumnLayout {
-                                visible: SystemInfo.chargeProtectionSupported
-                                Layout.fillWidth: true
-                                spacing: 0
-
-                                // Header row
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 12
-
-                                    Column {
-                                        spacing: 4
-                                        Layout.fillWidth: true
-
-                                    Text {
-                                        text: "Battery Protection"
-                                        font { pixelSize: 13; family: "Inter" }
-                                        font.weight: Font.Medium
-                                        color: root.textHigh
-                                    }
-                                    Text {
-                                        text: {
-                                            var m = SystemInfo.chargeProtectionMode
-                                            if (m === "threshold")
-                                                return "Stop charging at a set % to extend long-term battery life"
-                                            if (m === "conservation")
-                                                return SystemInfo.chargeProtectionEnabled
-                                                    ? "Charging capped at ~60% — battery lifespan protected"
-                                                    : "Charges to 100% — turn on when plugged in all day"
-                                            if (m === "asus_mode")
-                                                return "ASUS ROG charge mode — Balanced protects long-term capacity"
-                                            return ""
-                                        }
-                                        font { pixelSize: 11; family: "Inter" }
-                                        color: SystemInfo.chargeProtectionEnabled ? root.green : root.textMid
-                                        Behavior on color { ColorAnimation { duration: 300 } }
-                                        wrapMode: Text.WordWrap
-                                        Layout.fillWidth: true
-                                    }
-                                }
-
-                                // Toggle pill — only for binary (conservation) mode
-                                Rectangle {
-                                    visible: SystemInfo.chargeProtectionMode === "conservation"
-                                    width: 44; height: 24; radius: 12
-                                    color: SystemInfo.chargeProtectionEnabled
-                                           ? Qt.rgba(0.30, 0.69, 0.51, 0.85)
-                                           : globalBg4
-                                    border.width: 1
-                                    border.color: SystemInfo.chargeProtectionEnabled ? "#4CAF82" : globalBorder0
-                                    Behavior on color      { ColorAnimation { duration: 220 } }
-                                    Behavior on border.color { ColorAnimation { duration: 220 } }
-
-                                    Rectangle {
-                                        width: 18; height: 18; radius: 9
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        x: SystemInfo.chargeProtectionEnabled ? parent.width - width - 3 : 3
-                                        color: "white"
-                                        Behavior on x { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                                    }
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: SystemInfo.setChargeProtection(!SystemInfo.chargeProtectionEnabled)
-                                    }
-                                }
-                            }
-
-                            // ── Threshold mode: % chips (ThinkPad, ASUS, Samsung, Framework…) ──
-                            Flow {
-                                visible: SystemInfo.chargeProtectionMode === "threshold"
-                                Layout.fillWidth: true
-                                spacing: 8
-                                Layout.topMargin: 10
-
-                                Repeater {
-                                    model: [60, 70, 80, 85, 90, 95, 100]
-                                    delegate: Rectangle {
-                                        height: 28
-                                        width: chipLabel.implicitWidth + 24
-                                        radius: 6
-                                        property bool sel: SystemInfo.chargeLimit === modelData
-                                        color: sel
-                                               ? (isDarkTheme
-                                                   ? Qt.tint(globalBg3, Qt.rgba(root.green.r, root.green.g, root.green.b, 0.25))
-                                                   : Qt.tint(globalBg3, Qt.rgba(root.green.r, root.green.g, root.green.b, 0.15)))
-                                               : globalBg4
-                                        border.width: 1
-                                        border.color: sel ? "#4CAF82" : globalBorder0
-                                        Behavior on color { ColorAnimation { duration: 120 } }
-
-                                        Text {
-                                            id: chipLabel
-                                            anchors.centerIn: parent
-                                            text: modelData === 100 ? "100%  (Off)" : modelData + "%"
-                                            font { pixelSize: 12; family: "Inter" }
-                                            font.weight: sel ? Font.DemiBold : Font.Normal
-                                            color: sel ? root.green : root.textMid
-                                        }
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: SystemInfo.setChargeLimit(modelData)
-                                        }
-                                    }
-                                }
-                            }
-
-                            // ── ASUS ROG mode: 3-way chips ──────────────────
-                            Flow {
-                                visible: SystemInfo.chargeProtectionMode === "asus_mode"
-                                Layout.fillWidth: true
-                                spacing: 8
-                                Layout.topMargin: 10
-
-                                Repeater {
-                                    model: [
-                                        { label: "🍃  Balanced (~80%)",   mode: 0 },
-                                        { label: "🔋  Full Charge",       mode: 1 },
-                                        { label: "⚡  Gaming (Always on)", mode: 2 }
-                                    ]
-                                    delegate: Rectangle {
-                                        height: 28
-                                        width: asusLabel.implicitWidth + 24
-                                        radius: 6
-                                        property bool sel: SystemInfo.asusChargeMode === modelData.mode
-                                        color: sel
-                                               ? Qt.tint(globalBg3, Qt.rgba(root.accent.r, root.accent.g, root.accent.b, isDarkTheme ? 0.25 : 0.15))
-                                               : globalBg4
-                                        border.width: 1
-                                        border.color: sel ? root.accent : globalBorder0
-                                        Behavior on color { ColorAnimation { duration: 120 } }
-
-                                        Text {
-                                            id: asusLabel
-                                            anchors.centerIn: parent
-                                            text: modelData.label
-                                            font { pixelSize: 12; family: "Inter" }
-                                            font.weight: sel ? Font.DemiBold : Font.Normal
-                                            color: sel ? root.textHigh : root.textMid
-                                        }
-                                        MouseArea {
-                                            anchors.fill: parent
-                                            cursorShape: Qt.PointingHandCursor
-                                            onClicked: SystemInfo.setAsusChargeMode(modelData.mode)
-                                        }
-                                    }
-                                }
-                            }
-
-                            // Active hint card
-                            Rectangle {
-                                visible: SystemInfo.chargeProtectionEnabled
-                                Layout.fillWidth: true
-                                height: protHintCol.implicitHeight + 16
-                                radius: 8
-                                color: Qt.rgba(0.30, 0.69, 0.51, isDarkTheme ? 0.10 : 0.07)
-                                border.width: 1
-                                border.color: Qt.rgba(0.30, 0.69, 0.51, 0.30)
-                                Layout.topMargin: 10
-
-                                Column {
-                                    id: protHintCol
-                                    anchors { left: parent.left; right: parent.right; margins: 12; verticalCenter: parent.verticalCenter }
-                                    spacing: 2
-
-                                    Text {
-                                        text: {
-                                            var m = SystemInfo.chargeProtectionMode
-                                            if (m === "threshold")  return "🍃  Charging stops at " + SystemInfo.chargeLimit + "%"
-                                            if (m === "conservation") return "🍃  Conservation mode is ON"
-                                            if (m === "asus_mode" && SystemInfo.asusChargeMode === 0) return "🍃  ASUS Balanced mode — capped at ~80%"
-                                            return "🍃  Battery protection is active"
-                                        }
-                                        font { pixelSize: 12; family: "Inter" }
-                                        font.weight: Font.Medium
-                                        color: root.green
-                                    }
-                                    Text {
-                                        text: "Battery is being protected. Ideal when plugged in for long periods."
-                                        font { pixelSize: 11; family: "Inter" }
-                                        color: root.textMid
-                                        wrapMode: Text.WordWrap
-                                        width: parent.width
-                                    }
-                                }
-                                }
-                            }
-                            
-                            // Content for UNSUPPORTED hardware
-                            ColumnLayout {
-                                visible: !SystemInfo.chargeProtectionSupported
-                                Layout.fillWidth: true
-                                spacing: 12
-
-                                RowLayout {
-                                    Layout.fillWidth: true
-                                    spacing: 12
-
-                                    Column {
-                                        spacing: 4
-                                        Layout.fillWidth: true
-
-                                        Text {
-                                            text: "Battery Protection"
-                                            font { pixelSize: 13; family: "Inter" }
-                                            font.weight: Font.Medium
-                                            color: root.textMid
-                                        }
-                                        Text {
-                                            text: "Hardware not supported"
-                                            font { pixelSize: 11; family: "Inter" }
-                                            color: root.textLow
-                                        }
-                                    }
-                                }
-                                
-                                Rectangle {
-                                    Layout.fillWidth: true
-                                    height: unsuppHintCol.implicitHeight + 20
-                                    radius: 8
-                                    color: Qt.rgba(root.textLow.r, root.textLow.g, root.textLow.b, isDarkTheme ? 0.05 : 0.03)
-                                    border.width: 1
-                                    border.color: Qt.rgba(root.textLow.r, root.textLow.g, root.textLow.b, 0.15)
-                                    
-                                    RowLayout {
-                                        id: unsuppHintCol
-                                        anchors { left: parent.left; right: parent.right; margins: 12; verticalCenter: parent.verticalCenter }
-                                        spacing: 12
-                                        
-                                        Text {
-                                            text: "⚠"
-                                            font.pixelSize: 16
-                                            color: root.textMid
-                                            Layout.alignment: Qt.AlignTop
-                                        }
-                                        
-                                        Column {
-                                            Layout.fillWidth: true
-                                            spacing: 4
-                                            
-                                            Text {
-                                                text: "Feature Unavailable"
-                                                font { pixelSize: 12; family: "Inter" }
-                                                font.weight: Font.Medium
-                                                color: root.textMid
-                                            }
-                                            Text {
-                                                text: "Your device does not meet the minimum hardware requirements or lacks the necessary ACPI/sysfs interfaces for advanced battery protection."
-                                                font { pixelSize: 11; family: "Inter" }
-                                                color: root.textLow
-                                                wrapMode: Text.WordWrap
-                                                width: parent.width
-                                            }
-                                        }
-                                    }
-                                }
+                            Text {
+                                text: "Charges to 100% — turn on when plugged in all day"
+                                font { pixelSize: 12; family: "Inter" }
+                                color: root.textLow
                             }
                         }
+                        Item { Layout.fillWidth: true }
+                        TitanSwitch {
+                            onColor: root.accent
+                            checked: SystemInfo.chargeProtectionEnabled
+                            onCheckedChanged: SystemInfo.setChargeProtection(checked)
+                        }
                     }
-                }
 
-                // ── Rapid Charge toggle (Lenovo IdeaPad only for now) ───
-                Loader {
-                    id: rapidChargeLoader
-                    Layout.fillWidth: true
-                    active: SystemInfo.rapidChargeSupported
-
-                    sourceComponent: Component {
+                    // Rapid Charge
+                    RowLayout {
+                        visible: SystemInfo.rapidChargeSupported
+                        Layout.fillWidth: true
                         ColumnLayout {
-                            spacing: 0
-
-                            Rectangle {
-                                Layout.fillWidth: true; height: 1
-                                color: globalBorder1
-                                Layout.topMargin: 16; Layout.bottomMargin: 16
+                            spacing: 3
+                            Text {
+                                text: "Rapid Charge"
+                                font { pixelSize: 13; family: "Inter" }
+                                font.weight: Font.Medium
+                                color: root.textHigh
                             }
-
-                            RowLayout {
-                                Layout.fillWidth: true
-                                spacing: 12
-
-                                Column {
-                                    spacing: 4
-                                    Layout.fillWidth: true
-                                    Text {
-                                        text: "Rapid Charge"
-                                        font { pixelSize: 13; family: "Inter" }
-                                        font.weight: Font.Medium
-                                        color: root.textHigh
-                                    }
-                                    Text {
-                                        text: "Charge faster than normal — generates more heat"
-                                        font { pixelSize: 11; family: "Inter" }
-                                        color: root.textMid
-                                    }
-                                }
-
-                                Rectangle {
-                                    width: 44; height: 24; radius: 12
-                                    color: SystemInfo.rapidChargeEnabled
-                                           ? Qt.rgba(root.accent.r, root.accent.g, root.accent.b, 0.85)
-                                           : globalBg4
-                                    border.width: 1
-                                    border.color: SystemInfo.rapidChargeEnabled ? root.accent : globalBorder0
-                                    Behavior on color       { ColorAnimation { duration: 220 } }
-                                    Behavior on border.color { ColorAnimation { duration: 220 } }
-
-                                    Rectangle {
-                                        width: 18; height: 18; radius: 9
-                                        anchors.verticalCenter: parent.verticalCenter
-                                        x: SystemInfo.rapidChargeEnabled ? parent.width - width - 3 : 3
-                                        color: "white"
-                                        Behavior on x { NumberAnimation { duration: 220; easing.type: Easing.OutCubic } }
-                                    }
-                                    MouseArea {
-                                        anchors.fill: parent
-                                        cursorShape: Qt.PointingHandCursor
-                                        onClicked: SystemInfo.setRapidCharge(!SystemInfo.rapidChargeEnabled)
-                                    }
-                                }
+                            Text {
+                                text: "Charge faster than normal — generates more heat"
+                                font { pixelSize: 12; family: "Inter" }
+                                color: root.textLow
                             }
+                        }
+                        Item { Layout.fillWidth: true }
+                        TitanSwitch {
+                            onColor: root.accent
+                            checked: SystemInfo.rapidChargeEnabled
+                            onCheckedChanged: SystemInfo.setRapidCharge(checked)
                         }
                     }
                 }
