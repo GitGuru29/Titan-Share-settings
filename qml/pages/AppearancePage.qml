@@ -16,119 +16,173 @@ ScrollView {
     property color orange:    "#D4853A"
 
     readonly property var accentColors: [
-        "#4C8BF5", "#00BCD4", "#9575CD", "#66BB6A",
-        "#FFA726", "#EF5350", "#26A69A", "#FDD835"
+        "#4C8BF5", "#00D2D3", "#9575CD", "#66BB6A",
+        "#FFA726", "#FC5C65", "#26A69A", "#FED33C"
     ]
 
     ColumnLayout {
         width: root.availableWidth
         spacing: 0
 
-        Item { height: 28 }
+        Item { height: 20 }
 
-        // ── Theme picker ─────────────────────────────────────────
-        RowLayout {
+        // ── Page Header ──────────────────────────────────────────
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            spacing: 12
+            spacing: 4
 
-            Repeater {
-                model: [
-                    { name: "Dark",     bg: "#1C1C1C", bg2: "#111111" },
-                    { name: "Darker",   bg: "#0A0A0A", bg2: "#050505" },
-                    { name: "Midnight", bg: "#0F111A", bg2: "#090A0F" },
-                    { name: "Dim",      bg: "#2D2D2D", bg2: "#222222" }
-                ]
-                delegate: Rectangle {
-                    Layout.fillWidth: true
-                    height: 104; radius: 10
-                    color: globalBg3
-                    border.width: SettingsBackend.colorTheme === modelData.name ? 2 : 1
-                    border.color: SettingsBackend.colorTheme === modelData.name
-                                  ? root.accent : globalBorder0
-                    Behavior on border.color { ColorAnimation { duration: 150 } }
+            Text {
+                text: "Appearance"
+                font { pixelSize: 22; family: "Inter" }
+                font.weight: Font.Bold
+                color: root.textHigh
+            }
 
-                    // Preview window
-                    Column {
-                        anchors.centerIn: parent
-                        spacing: 8
-
-                        Rectangle {
-                            width: 60; height: 38; radius: 7
-                            color: modelData.bg
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            border.width: 1; border.color: globalBorder0
-
-                            // Titlebar
-                            Rectangle {
-                                width: parent.width; height: 9
-                                color: Qt.lighter(modelData.bg, 1.6)
-                                topLeftRadius: 7; topRightRadius: 7
-                                Row {
-                                    anchors { left: parent.left; leftMargin: 5; verticalCenter: parent.verticalCenter }
-                                    spacing: 3
-                                    Repeater {
-                                        model: ["#ED6A5E", "#F5BF4F", "#61C554"]
-                                        Rectangle { width: 4; height: 4; radius: 2; color: modelData }
-                                    }
-                                }
-                            }
-                            // Lines
-                            Column {
-                                anchors { left: parent.left; right: parent.right; top: parent.top; topMargin: 13; margins: 6 }
-                                spacing: 3
-                                Repeater {
-                                    model: 3
-                                    Rectangle {
-                                        width: (3 - index) * 10 + 16; height: 2; radius: 1
-                                        color: root.accent; opacity: 0.3 + index * 0.15
-                                    }
-                                }
-                            }
-                        }
-
-                        Text {
-                            text: modelData.name
-                            anchors.horizontalCenter: parent.horizontalCenter
-                            font { pixelSize: 11; family: "Inter" }
-                            font.weight: SettingsBackend.colorTheme === modelData.name ? Font.Medium : Font.Normal
-                            color: SettingsBackend.colorTheme === modelData.name ? root.textHigh : root.textMid
-                        }
-                    }
-
-                    MouseArea {
-                        anchors.fill: parent; hoverEnabled: true
-                        cursorShape: Qt.PointingHandCursor
-                        onClicked: SettingsBackend.colorTheme = modelData.name
-                    }
-                }
+            Text {
+                text: "Customize how ArchTitan OS looks and feels"
+                font { pixelSize: 13; family: "Inter" }
+                color: root.textLow
             }
         }
 
-        Item { height: 16 }
+        Item { height: 24 }
 
-        // ── Accent color ─────────────────────────────────────────
-        SettingsCard {
+        // ── Theme Section ────────────────────────────────────────
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Accent Color"
+            spacing: 10
+
+            Text {
+                text: "THEME"
+                font { pixelSize: 10; family: "Inter" }
+                font.weight: Font.DemiBold
+                font.letterSpacing: 1.2
+                color: root.textLow
+            }
 
             RowLayout {
                 Layout.fillWidth: true
                 spacing: 12
 
                 Repeater {
+                    model: [
+                        { name: "Dark",     bg: "#1C1C1C" },
+                        { name: "Darker",   bg: "#0A0A0A" },
+                        { name: "Midnight", bg: "#0D111A" },
+                        { name: "Dim",      bg: "#252830" }
+                    ]
+                    delegate: Rectangle {
+                        Layout.fillWidth: true
+                        height: 96; radius: 10
+                        color: globalBg3
+                        border.width: SettingsBackend.colorTheme === modelData.name ? 2 : 1
+                        border.color: SettingsBackend.colorTheme === modelData.name
+                                      ? root.accent : globalBorder0
+                        Behavior on border.color { ColorAnimation { duration: 150 } }
+
+                        ColumnLayout {
+                            anchors { fill: parent; margins: 12 }
+                            spacing: 8
+
+                            Rectangle {
+                                Layout.fillWidth: true
+                                height: 42; radius: 6
+                                color: modelData.bg
+                                border.width: 1; border.color: globalBorder0
+
+                                // Titlebar dots inside preview
+                                Row {
+                                    anchors { left: parent.left; leftMargin: 8; top: parent.top; topMargin: 6 }
+                                    spacing: 4
+                                    Repeater {
+                                        model: ["#ED6A5E", "#F5BF4F", "#61C554"]
+                                        Rectangle { width: 4; height: 4; radius: 2; color: modelData }
+                                    }
+                                }
+                            }
+
+                            Text {
+                                text: modelData.name
+                                Layout.alignment: Qt.AlignHCenter
+                                font { pixelSize: 12; family: "Inter" }
+                                font.weight: SettingsBackend.colorTheme === modelData.name ? Font.Medium : Font.Normal
+                                color: SettingsBackend.colorTheme === modelData.name ? root.textHigh : root.textMid
+                            }
+                        }
+
+                        MouseArea {
+                            anchors.fill: parent; hoverEnabled: true
+                            cursorShape: Qt.PointingHandCursor
+                            onClicked: SettingsBackend.colorTheme = modelData.name
+                        }
+                    }
+                }
+            }
+        }
+
+        Item { height: 24 }
+
+        // ── Accent Color Section ──────────────────────────────────
+        ColumnLayout {
+            Layout.fillWidth: true
+            Layout.leftMargin: 24; Layout.rightMargin: 24
+            spacing: 12
+
+            RowLayout {
+                Layout.fillWidth: true
+                Text {
+                    text: "ACCENT COLOR"
+                    font { pixelSize: 10; family: "Inter" }
+                    font.weight: Font.DemiBold
+                    font.letterSpacing: 1.2
+                    color: root.textLow
+                }
+                Item { Layout.fillWidth: true }
+
+                Rectangle {
+                    height: 24; width: hexText.implicitWidth + 16; radius: 6
+                    color: Qt.hsla(accent.hslHue, accent.hslSaturation, accent.hslLightness, 0.15)
+                    border.width: 1; border.color: Qt.hsla(accent.hslHue, accent.hslSaturation, accent.hslLightness, 0.3)
+
+                    Text {
+                        id: hexText
+                        anchors.centerIn: parent
+                        text: SettingsBackend.accentColor.toUpperCase()
+                        font { pixelSize: 11; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        color: root.accent
+                    }
+                }
+            }
+
+            RowLayout {
+                Layout.fillWidth: true
+                spacing: 14
+
+                Repeater {
                     model: root.accentColors
                     delegate: Item {
-                        width: 30; height: 30
+                        width: 32; height: 32
+                        
+                        // Outer selection ring
                         Rectangle {
                             anchors.centerIn: parent
-                            width: SettingsBackend.accentColor === modelData ? 30 : 24
+                            width: 32; height: 32; radius: 16
+                            color: "transparent"
+                            border.width: SettingsBackend.accentColor === modelData ? 2 : 0
+                            border.color: root.accent
+                            Behavior on border.width { NumberAnimation { duration: 120 } }
+                        }
+
+                        Rectangle {
+                            anchors.centerIn: parent
+                            width: SettingsBackend.accentColor === modelData ? 24 : 28
                             height: width; radius: width / 2
                             color: modelData
-                            border.width: SettingsBackend.accentColor === modelData ? 2 : 0
-                            border.color: "#FFFFFF"
                             Behavior on width { NumberAnimation { duration: 120 } }
+
                             MouseArea {
                                 anchors.fill: parent; hoverEnabled: true
                                 cursorShape: Qt.PointingHandCursor
@@ -137,38 +191,23 @@ ScrollView {
                         }
                     }
                 }
-
-                Item { Layout.fillWidth: true }
-
-                Rectangle {
-                    width: 64; height: 26; radius: 6
-                    color: SettingsBackend.accentColor
-                    Behavior on color { ColorAnimation { duration: 180 } }
-                    Text {
-                        anchors.centerIn: parent
-                        text: SettingsBackend.accentColor
-                        font { pixelSize: 10; family: "Inter" }
-                        font.weight: Font.Medium
-                        color: "#FFFFFF"
-                    }
-                }
             }
         }
 
-        Item { height: 12 }
+        Item { height: 24 }
 
-        // ── Visual effects ────────────────────────────────────────
+        // ── Visual Effects Section ───────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Visual Effects"
+            title: "VISUAL EFFECTS"
 
             RowLayout {
                 Layout.fillWidth: true
-                Column {
-                    spacing: 4
+                ColumnLayout {
+                    spacing: 3
                     Text {
-                        text: "Blur / Transparency"
+                        text: "Blur / transparency"
                         font { pixelSize: 13; family: "Inter" }
                         font.weight: Font.Medium
                         color: root.textHigh
@@ -176,7 +215,7 @@ ScrollView {
                     Text {
                         text: "Frosted glass effect on panels"
                         font { pixelSize: 12; family: "Inter" }
-                        color: root.textMid
+                        color: root.textLow
                     }
                 }
                 Item { Layout.fillWidth: true }
@@ -187,87 +226,99 @@ ScrollView {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 6; Layout.bottomMargin: 6 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 8; Layout.bottomMargin: 8 }
 
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
-                Column {
-                    spacing: 4
-                    Text {
-                        text: "Panel Opacity"
-                        font { pixelSize: 13; family: "Inter" }
-                        font.weight: Font.Medium
-                        color: root.textHigh
+                spacing: 8
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    ColumnLayout {
+                        spacing: 3
+                        Text {
+                            text: "Panel opacity"
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.Medium
+                            color: root.textHigh
+                        }
+                        Text {
+                            text: "Transparency level for sidebars"
+                            font { pixelSize: 12; family: "Inter" }
+                            color: root.textLow
+                        }
                     }
+                    Item { Layout.fillWidth: true }
                     Text {
-                        text: "Transparency level for sidebars"
-                        font { pixelSize: 12; family: "Inter" }
-                        color: root.textMid
+                        text: Math.round(SettingsBackend.panelOpacity * 100) + "%"
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        color: root.accent
                     }
                 }
-                Item { Layout.fillWidth: true }
+
                 TitanSlider {
-                    width: 160; from: 0.4; to: 1.0; stepSize: 0.01
+                    Layout.fillWidth: true
+                    from: 0.4; to: 1.0; stepSize: 0.01
                     fillColor: root.accent
                     value: SettingsBackend.panelOpacity
                     onValueChanged: SettingsBackend.panelOpacity = value
                 }
-                Text {
-                    text: Math.round(SettingsBackend.panelOpacity * 100) + "%"
-                    font { pixelSize: 12; family: "Inter" }
-                    font.weight: Font.Medium
-                    color: root.accent
-                    Layout.preferredWidth: 40
-                    horizontalAlignment: Text.AlignRight
-                }
             }
         }
 
-        Item { height: 12 }
+        Item { height: 24 }
 
-        // ── Icon theme ────────────────────────────────────────────
-        SettingsCard {
+        // ── Icon Theme Section ────────────────────────────────────
+        ColumnLayout {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Icon Theme"
+            spacing: 10
+
+            Text {
+                text: "ICON THEME"
+                font { pixelSize: 10; family: "Inter" }
+                font.weight: Font.DemiBold
+                font.letterSpacing: 1.2
+                color: root.textLow
+            }
 
             RowLayout {
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: 12
 
                 Repeater {
-                    model: ["Papirus-Dark", "Papirus", "Adwaita", "Breeze-Dark"]
+                    model: ["Papirus-dark", "Papirus", "Adwaita", "Breeze-dark"]
                     delegate: Rectangle {
                         Layout.fillWidth: true
-                        height: 70; radius: 8
-                        color: SettingsBackend.iconTheme === modelData ? (isDarkTheme ? "#1E2A3A" : "#D0E0F0") : globalBg3
-                        border.width: 1
+                        height: 84; radius: 10
+                        color: globalBg3
+                        border.width: SettingsBackend.iconTheme === modelData ? 2 : 1
                         border.color: SettingsBackend.iconTheme === modelData ? root.accent : globalBorder0
-                        Behavior on color       { ColorAnimation { duration: 150 } }
-                        Behavior on border.color{ ColorAnimation { duration: 150 } }
+                        Behavior on border.color { ColorAnimation { duration: 150 } }
 
-                        Column {
+                        ColumnLayout {
                             anchors.centerIn: parent
-                            spacing: 6
-                            
-                            // Mock folder icon preview
-                            Item {
-                                width: 28; height: 22
-                                anchors.horizontalCenter: parent.horizontalCenter
+                            spacing: 8
+
+                            // Folder icon preview badge
+                            Rectangle {
+                                Layout.alignment: Qt.AlignHCenter
+                                width: 36; height: 26; radius: 5
+                                color: modelData === "Adwaita" ? "#E0A93B" :
+                                       modelData === "Papirus-dark" ? "#3B82F6" :
+                                       modelData === "Papirus" ? "#60A5FA" : "#38BDF8"
+
                                 Rectangle {
-                                    y: 6; width: 28; height: 16; radius: 3
-                                    color: modelData.includes("Adwaita") ? "#E3C293" : (modelData.includes("Breeze") ? "#3DAEE9" : (modelData.includes("Dark") ? "#3D82AE" : "#4FC3F7"))
-                                }
-                                Rectangle {
-                                    x: 2; y: 2; width: 12; height: 6; radius: 2
-                                    color: Qt.lighter(modelData.includes("Adwaita") ? "#E3C293" : (modelData.includes("Breeze") ? "#3DAEE9" : (modelData.includes("Dark") ? "#3D82AE" : "#4FC3F7")), 1.15)
+                                    x: 3; y: -3; width: 14; height: 8; radius: 2
+                                    color: Qt.lighter(parent.color, 1.2)
                                 }
                             }
 
                             Text {
-                                anchors.horizontalCenter: parent.horizontalCenter
                                 text: modelData
-                                font { pixelSize: 11; family: "Inter" }
+                                Layout.alignment: Qt.AlignHCenter
+                                font { pixelSize: 12; family: "Inter" }
                                 font.weight: SettingsBackend.iconTheme === modelData ? Font.Medium : Font.Normal
                                 color: SettingsBackend.iconTheme === modelData ? root.textHigh : root.textMid
                             }
@@ -283,52 +334,45 @@ ScrollView {
             }
         }
 
-        Item { height: 12 }
+        Item { height: 24 }
 
-        // ── Typography ────────────────────────────────────────────
+        // ── Typography Section ────────────────────────────────────
         SettingsCard {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
-            title: "Typography"
+            title: "TYPOGRAPHY"
 
-            // Font Family row
-            Column {
+            ColumnLayout {
                 Layout.fillWidth: true
-                spacing: 10
+                spacing: 12
 
-                Row {
-                    spacing: 0
-                    Text {
-                        text: "Font Family"
-                        font { pixelSize: 13; family: "Inter" }
-                        font.weight: Font.Medium
-                        color: root.textHigh
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
+                Text {
+                    text: "Font family"
+                    font { pixelSize: 13; family: "Inter" }
+                    font.weight: Font.Medium
+                    color: root.textHigh
                 }
 
-                Flow {
-                    width: parent.width
+                RowLayout {
+                    Layout.fillWidth: true
                     spacing: 8
 
                     Repeater {
-                        model: ["Inter", "JetBrains Mono", "Fira Code", "Roboto", "Noto Sans", "Ubuntu", "Cascadia Code"]
+                        model: ["Inter", "JetBrains Mono", "Fira Code", "Roboto", "Noto Sans"]
                         delegate: Rectangle {
-                            height: 30
-                            width: ffLabel.implicitWidth + 24
+                            height: 32
+                            Layout.fillWidth: true
                             radius: 6
-                            color: SettingsBackend.fontFamily === modelData ? (isDarkTheme ? "#1E2A3A" : "#D0E0F0") : globalBg3
+                            color: SettingsBackend.fontFamily === modelData ? root.accent : globalBg4
                             border.width: 1
                             border.color: SettingsBackend.fontFamily === modelData ? root.accent : globalBorder0
-                            Behavior on color       { ColorAnimation { duration: 120 } }
-                            Behavior on border.color{ ColorAnimation { duration: 120 } }
 
                             Text {
-                                id: ffLabel
                                 anchors.centerIn: parent
                                 text: modelData
                                 font { pixelSize: 12; family: modelData }
-                                color: SettingsBackend.fontFamily === modelData ? root.textHigh : root.textMid
+                                font.weight: SettingsBackend.fontFamily === modelData ? Font.Medium : Font.Normal
+                                color: SettingsBackend.fontFamily === modelData ? "#FFFFFF" : root.textMid
                             }
 
                             MouseArea {
@@ -341,45 +385,50 @@ ScrollView {
                 }
             }
 
-            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 4; Layout.bottomMargin: 4 }
+            Rectangle { Layout.fillWidth: true; height: 1; color: globalBorder1; Layout.topMargin: 8; Layout.bottomMargin: 8 }
 
-            // Font Size row
-            RowLayout {
+            ColumnLayout {
                 Layout.fillWidth: true
-                Column {
-                    spacing: 4
-                    Text {
-                        text: "Font Size"
-                        font { pixelSize: 13; family: "Inter" }
-                        font.weight: Font.Medium
-                        color: root.textHigh
+                spacing: 8
+
+                RowLayout {
+                    Layout.fillWidth: true
+                    ColumnLayout {
+                        spacing: 3
+                        Text {
+                            text: "Font size"
+                            font { pixelSize: 13; family: "Inter" }
+                            font.weight: Font.Medium
+                            color: root.textHigh
+                        }
+                        Text {
+                            text: "System-wide interface font size"
+                            font { pixelSize: 12; family: "Inter" }
+                            color: root.textLow
+                        }
                     }
+                    Item { Layout.fillWidth: true }
                     Text {
-                        text: "System-wide interface font size"
-                        font { pixelSize: 12; family: "Inter" }
-                        color: root.textMid
+                        text: SettingsBackend.fontSize + " pt"
+                        font { pixelSize: 13; family: "Inter" }
+                        font.weight: Font.DemiBold
+                        color: root.accent
                     }
                 }
-                Item { Layout.fillWidth: true }
+
                 TitanSlider {
-                    width: 160; from: 10; to: 24; stepSize: 1
+                    Layout.fillWidth: true
+                    from: 9; to: 18; stepSize: 1
                     fillColor: root.accent
                     value: SettingsBackend.fontSize
                     onValueChanged: SettingsBackend.fontSize = value
-                }
-                Text {
-                    text: SettingsBackend.fontSize + " pt"
-                    font { pixelSize: 12; family: "Inter" }
-                    font.weight: Font.Medium
-                    color: root.accent
-                    Layout.preferredWidth: 40
-                    horizontalAlignment: Text.AlignRight
                 }
             }
         }
 
         Item { height: 24 }
 
+        // ── Action Buttons ────────────────────────────────────────
         RowLayout {
             Layout.fillWidth: true
             Layout.leftMargin: 24; Layout.rightMargin: 24
