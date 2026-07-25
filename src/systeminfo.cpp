@@ -127,9 +127,42 @@ QString SystemInfo::cpuModel() const {
 QString SystemInfo::gpuModel() const {
     if (!m_gpuModel.isEmpty()) return m_gpuModel;
     QProcess p;
-    p.start("bash", {"-c", "lspci 2>/dev/null | grep -iE 'VGA|3D|Display' | head -1 | sed 's/.*: //'"});
+    p.start("bash", {"-c", "lspci 2>/dev/null | grep -iE 'VGA|3D|Display' | sed 's/.*: //'"});
     p.waitForFinished(1000);
-    m_gpuModel = p.readAllStandardOutput().trimmed();
+    QString raw = p.readAllStandardOutput().trimmed();
+    if (!raw.isEmpty()) {
+        QStringList lines = raw.split('\n', Qt::SkipEmptyParts);
+        QStringList gpus;
+        for (const QString &line : lines) {
+            QString str = line.trimmed();
+            if (str.isEmpty()) continue;
+            
+            // Remove (rev xx)
+            int revIdx = str.indexOf("(rev ");
+            if (revIdx != -1) str = str.left(revIdx).trimmed();
+
+            QString vendor;
+            if (str.contains("NVIDIA", Qt::CaseInsensitive)) vendor = "NVIDIA";
+            else if (str.contains("Intel", Qt::CaseInsensitive)) vendor = "Intel";
+            else if (str.contains("AMD", Qt::CaseInsensitive) || str.contains("ATI", Qt::CaseInsensitive)) vendor = "AMD";
+
+            int firstBracket = str.lastIndexOf('[');
+            int lastBracket = str.lastIndexOf(']');
+            if (firstBracket != -1 && lastBracket > firstBracket) {
+                QString model = str.mid(firstBracket + 1, lastBracket - firstBracket - 1).trimmed();
+                if (!vendor.isEmpty() && !model.startsWith(vendor, Qt::CaseInsensitive)) {
+                    gpus.append(vendor + " " + model);
+                } else {
+                    gpus.append(model);
+                }
+            } else {
+                str.remove("Corporation", Qt::CaseInsensitive);
+                str.remove("Inc.", Qt::CaseInsensitive);
+                gpus.append(str.simplified());
+            }
+        }
+        m_gpuModel = gpus.join("\n");
+    }
     if (m_gpuModel.isEmpty()) m_gpuModel = "Unknown GPU";
     return m_gpuModel;
 }
