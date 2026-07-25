@@ -97,7 +97,7 @@ ApplicationWindow {
             Rectangle {
                 Layout.preferredWidth: root.sidebarW
                 Layout.fillHeight: true
-                color: root.bg2
+                color: "#0a0e16"
                 radius: 12
 
                 // Square off right corners
@@ -111,49 +111,57 @@ ApplicationWindow {
                 Rectangle {
                     anchors { top: parent.top; bottom: parent.bottom; right: parent.right }
                     width: 1
-                    color: root.border1
+                    color: Qt.rgba(0.298, 0.545, 0.96, 0.25)
                 }
 
                 ColumnLayout {
                     anchors.fill: parent
                     spacing: 0
 
-                    // ── Logo Header ──────────────────────────────
+                    // ── Logo / Header ────────────────────────────
                     Item {
                         Layout.fillWidth: true
-                        height: 64
+                        implicitHeight: logoHeaderCol.implicitHeight + 20
 
-                        RowLayout {
+                        ColumnLayout {
+                            id: logoHeaderCol
                             anchors {
-                                left: parent.left; leftMargin: 18
-                                verticalCenter: parent.verticalCenter
+                                top: parent.top
+                                topMargin: 20
+                                horizontalCenter: parent.horizontalCenter
                             }
-                            spacing: 12
+                            spacing: 6
 
-                            Image {
-                                width: 28; height: 28
-                                source: "qrc:/ArchTitanSettings/assets/icons/LOGO.png"
-                                fillMode: Image.PreserveAspectFit
-                                smooth: true
+                            // Logo icon badge
+                            Rectangle {
+                                Layout.alignment: Qt.AlignHCenter
+                                width: 34; height: 34
+                                radius: 8
+                                color: Qt.rgba(0.298, 0.545, 0.96, 0.15)
+                                border.width: 1
+                                border.color: Qt.rgba(0.298, 0.545, 0.96, 0.4)
+
+                                Image {
+                                    anchors.centerIn: parent
+                                    width: 22; height: 22
+                                    source: "qrc:/ArchTitanSettings/assets/icons/LOGO.png"
+                                    fillMode: Image.PreserveAspectFit
+                                    smooth: true
+                                }
                             }
 
+                            // Wordmark
                             Text {
-                                text: "ArchTitan"
-                                font { pixelSize: 15; family: "Inter" }
+                                Layout.alignment: Qt.AlignHCenter
+                                text: "ArchTitan Settings"
+                                font { pixelSize: 13; family: "Inter" }
                                 font.weight: Font.Bold
-                                color: root.textHigh
+                                color: "#f2f4f8"
                             }
                         }
                     }
 
-                    // Divider
-                    Rectangle {
-                        Layout.fillWidth: true
-                        height: 1
-                        color: root.border1
-                    }
-
-                    Item { height: 10 }
+                    Item { height: 26 }
 
                     // ── Nav items ─────────────────────────────────
                     ColumnLayout {
@@ -167,36 +175,37 @@ ApplicationWindow {
                                 iconSource: "qrc:/ArchTitanSettings/assets/icons/" + modelData.icon + ".svg"
                                 label: modelData.label
                                 active: root.currentPage === index
-                                accent: root.accent
                                 onClicked: root.currentPage = index
                             }
                         }
                     }
 
+                    // Pin footer to bottom regardless of nav item count
                     Item { Layout.fillHeight: true }
 
-                    // ── Bottom status ─────────────────────────────
+                    // ── Footer Status Block ───────────────────────
                     Rectangle {
                         Layout.fillWidth: true
                         height: 1
-                        color: root.border1
+                        color: Qt.rgba(1, 1, 1, 0.06)
                     }
 
                     Item {
                         Layout.fillWidth: true
-                        height: 52
+                        implicitHeight: 56
 
                         RowLayout {
                             anchors {
                                 left: parent.left; leftMargin: 18
                                 right: parent.right; rightMargin: 16
-                                verticalCenter: parent.verticalCenter
+                                top: parent.top; topMargin: 16
                             }
                             spacing: 10
 
                             Rectangle {
-                                width: 7; height: 7; radius: 3.5
-                                color: root.green
+                                width: 8; height: 8; radius: 4
+                                color: "#46d183"
+                                Layout.alignment: Qt.AlignVCenter
                             }
 
                             ColumnLayout {
@@ -207,12 +216,12 @@ ApplicationWindow {
                                     text: "ArchTitan OS"
                                     font { pixelSize: 11; family: "Inter" }
                                     font.weight: Font.Medium
-                                    color: root.textHigh
+                                    color: "#f2f4f8"
                                 }
                                 Text {
                                     text: "Settings v1.0"
                                     font { pixelSize: 10; family: "Inter" }
-                                    color: root.textMid
+                                    color: "#9aa2b1"
                                 }
                             }
                         }
