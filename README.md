@@ -97,7 +97,7 @@ archtitan-settings/
 
 ## Status
 
-> ⚠ Work in progress — not yet integrated into the main ISO build. This folder is excluded from the `custom-os-build` repo via `.gitignore`.
+> ⚡ **Active — Core Component.** This is a core OS component of ArchTitan, living at the repository root alongside `titan-hwm-source/`, `titanfetch-src/`, and `sandbox/`. Not a subsystem.
 
 ---
 
